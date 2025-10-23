@@ -149,20 +149,8 @@ const INDEX_HTML = `<!DOCTYPE html>
         }
 
         .button-icon {
-            font-size: 3rem;
-            margin-bottom: 8px;
-        }
-
-        .button-text {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .button-subtitle {
-            font-size: 0.8rem;
-            opacity: 0.8;
-            font-weight: 300;
+            font-size: 5rem;
+            font-weight: bold;
         }
 
         .button-ring {
@@ -746,9 +734,7 @@ const INDEX_HTML = `<!DOCTYPE html>
                 <div class="main-button-container">
                     <button id="btn" class="main-button">
                         <div class="button-content">
-                            <div class="button-icon">🎧</div>
-                            <div class="button-text">Start Listening</div>
-                            <div class="button-subtitle">Tap to begin music recognition</div>
+                            <div class="button-icon">▶</div>
                         </div>
                         <div class="button-ring"></div>
                     </button>
@@ -963,8 +949,7 @@ function startContinuousListening() {
   if (isListening) return;
   
   isListening = true;
-  btn.querySelector('.button-text').textContent = 'Stop Listening';
-  btn.querySelector('.button-subtitle').textContent = 'Tap to stop';
+  btn.querySelector('.button-icon').textContent = '⏸';
   
   // Clear previous playlist
   playlist = [];
@@ -984,8 +969,7 @@ function stopContinuousListening() {
   if (!isListening) return;
   
   isListening = false;
-  btn.querySelector('.button-text').textContent = 'Start Listening';
-  btn.querySelector('.button-subtitle').textContent = 'Tap to begin music recognition';
+  btn.querySelector('.button-icon').textContent = '▶';
   
   if (recognitionInterval) {
     clearInterval(recognitionInterval);
@@ -1069,8 +1053,8 @@ btn.onclick = () => {
 
 exportBtn.onclick = exportToSpotify;
 
-// Initialize button text
-btn.querySelector('.button-text').textContent = 'Start Listening';
+// Initialize button icon
+btn.querySelector('.button-icon').textContent = '▶';
 </script>
 </body>
 </html>`;
