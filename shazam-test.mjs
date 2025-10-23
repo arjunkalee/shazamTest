@@ -550,7 +550,6 @@ const INDEX_HTML = `<!DOCTYPE html>
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
             color: white;
             font-size: 1.1rem;
             font-weight: 600;
@@ -559,12 +558,12 @@ const INDEX_HTML = `<!DOCTYPE html>
         .playlist-count {
             background: rgba(255, 255, 255, 0.2);
             border-radius: 50%;
-            width: 24px;
-            height: 24px;
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.9rem;
+            font-size: 1.1rem;
             font-weight: 700;
         }
 
@@ -761,8 +760,6 @@ const INDEX_HTML = `<!DOCTYPE html>
                 <div class="playlist-handle" id="playlistHandleBar">
                     <div class="handle-indicator"></div>
                     <div class="handle-content">
-                        <span class="playlist-icon">📋</span>
-                        <span class="playlist-text">Playlist</span>
                         <span id="playlistCount" class="playlist-count">0</span>
                     </div>
                 </div>
