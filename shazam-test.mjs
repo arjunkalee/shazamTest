@@ -939,11 +939,34 @@ async function startContinuousListening() {
   if (isListening) return;
   
   try {
+    // Check if we're on HTTPS or localhost
+    const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    if (!isSecure) {
+      statusEl.textContent = 'Microphone requires HTTPS. Please use https:// or localhost.';
+      statusEl.className = 'status error';
+      return;
+    }
+    
+    // Check if mediaDevices is available
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      statusEl.textContent = 'Microphone not supported in this browser.';
+      statusEl.className = 'status error';
+      return;
+    }
+    
     // Request microphone permission first
     statusEl.textContent = 'Requesting microphone access...';
     statusEl.className = 'status processing';
     
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    console.log('Requesting microphone access...');
+    const stream = await navigator.mediaDevices.getUserMedia({ 
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true
+      }
+    });
+    console.log('Microphone access granted!');
     stream.getTracks().forEach(track => track.stop()); // Stop the test stream
     
     isListening = true;
@@ -962,8 +985,20 @@ async function startContinuousListening() {
     // Then continue every 5 seconds
     recognitionInterval = setInterval(recognizeSong, 5000);
   } catch (error) {
-    console.error('Microphone access denied:', error);
-    statusEl.textContent = 'Microphone access denied. Please allow microphone access and try again.';
+    console.error('Microphone access error:', error);
+    
+    let errorMessage = 'Microphone access denied. ';
+    if (error.name === 'NotAllowedError') {
+      errorMessage += 'Please click "Allow" when prompted for microphone access.';
+    } else if (error.name === 'NotFoundError') {
+      errorMessage += 'No microphone found. Please connect a microphone.';
+    } else if (error.name === 'NotSupportedError') {
+      errorMessage += 'Microphone not supported in this browser.';
+    } else {
+      errorMessage += 'Please check your microphone permissions in browser settings.';
+    }
+    
+    statusEl.textContent = errorMessage;
     statusEl.className = 'status error';
   }
 }
@@ -1083,6 +1118,21 @@ exportBtn.onclick = exportToSpotify;
 
 // Initialize button icon
 btn.querySelector('.button-icon').textContent = '▶';
+
+// Add instructions for microphone access
+window.addEventListener('load', () => {
+  console.log('App loaded. HTTPS:', location.protocol === 'https:');
+  console.log('MediaDevices available:', !!navigator.mediaDevices);
+  
+  // Check if we can request permissions
+  if (navigator.permissions) {
+    navigator.permissions.query({name: 'microphone'}).then(result => {
+      console.log('Microphone permission state:', result.state);
+    }).catch(err => {
+      console.log('Could not query microphone permissions:', err);
+    });
+  }
+});
 </script>
 </body>
 </html>`;
