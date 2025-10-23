@@ -523,19 +523,19 @@ const INDEX_HTML = `<!DOCTYPE html>
         }
 
         .playlist-handle {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #000000;
             border-radius: 24px 24px 0 0;
             padding: 12px 24px 24px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 -5px 20px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.3);
             pointer-events: all;
             position: relative;
         }
 
         .playlist-handle:hover {
             transform: translateY(-5px);
-            box-shadow: 0 -10px 30px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
         }
 
         .handle-indicator {
@@ -546,26 +546,6 @@ const INDEX_HTML = `<!DOCTYPE html>
             margin: 0 auto 12px;
         }
 
-        .handle-content {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        .playlist-count {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-            font-weight: 700;
-        }
 
         .modal {
             display: none;
@@ -759,9 +739,6 @@ const INDEX_HTML = `<!DOCTYPE html>
             <div class="playlist-handle-container" id="playlistHandle">
                 <div class="playlist-handle" id="playlistHandleBar">
                     <div class="handle-indicator"></div>
-                    <div class="handle-content">
-                        <span id="playlistCount" class="playlist-count">0</span>
-                    </div>
                 </div>
             </div>
 
