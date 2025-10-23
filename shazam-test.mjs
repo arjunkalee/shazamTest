@@ -911,12 +911,10 @@ async function recognizeSong() {
   try {
     statusEl.textContent = 'Listening for ~8 seconds…';
     statusEl.className = 'status listening';
-    debugStatusEl.textContent = 'Recording';
     
     const blob = await record(8000);
     statusEl.textContent = 'Uploading & recognizing…';
     statusEl.className = 'status processing';
-    debugStatusEl.textContent = 'Processing';
     
     const form = new FormData();
     form.append('file', blob, 'clip.webm');
@@ -929,19 +927,15 @@ async function recognizeSong() {
       addToPlaylist(data);
       statusEl.textContent = \`🎵 New Song: \${data.track?.title || 'Unknown'} by \${data.track?.subtitle || 'Unknown'}\`;
       statusEl.className = 'status listening';
-      lastActivityEl.textContent = new Date().toLocaleTimeString();
     } else {
       statusEl.textContent = 'Same song playing, continuing to listen...';
       statusEl.className = 'status';
     }
     
-    debugStatusEl.textContent = 'Complete';
-    
   } catch (e) {
     console.error(e);
     statusEl.textContent = 'Error: ' + (e?.message || e);
     statusEl.className = 'status error';
-    debugStatusEl.textContent = 'Error';
   }
 }
 
