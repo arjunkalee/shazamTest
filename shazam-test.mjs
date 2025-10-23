@@ -790,19 +790,24 @@ let currentY = 0;
 let isDragging = false;
 
 async function record(ms = 8000) {
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
-    ? 'audio/webm;codecs=opus'
-    : 'audio/webm';
-  const rec = new MediaRecorder(stream, { mimeType: mime });
-  const chunks = [];
-  rec.ondataavailable = e => chunks.push(e.data);
-  rec.start();
-  await new Promise(r => setTimeout(r, ms));
-  rec.stop();
-  await new Promise(r => (rec.onstop = r));
-  stream.getTracks().forEach(t => t.stop());
-  return new Blob(chunks, { type: mime });
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+      ? 'audio/webm;codecs=opus'
+      : 'audio/webm';
+    const rec = new MediaRecorder(stream, { mimeType: mime });
+    const chunks = [];
+    rec.ondataavailable = e => chunks.push(e.data);
+    rec.start();
+    await new Promise(r => setTimeout(r, ms));
+    rec.stop();
+    await new Promise(r => (rec.onstop = r));
+    stream.getTracks().forEach(t => t.stop());
+    return new Blob(chunks, { type: mime });
+  } catch (error) {
+    console.error('Recording failed:', error);
+    throw new Error('Failed to access microphone. Please check your microphone permissions.');
+  }
 }
 
 function renderResult(data) {
@@ -930,24 +935,37 @@ async function recognizeSong() {
   }
 }
 
-function startContinuousListening() {
+async function startContinuousListening() {
   if (isListening) return;
   
-  isListening = true;
-  btn.querySelector('.button-icon').textContent = '⏸';
-  
-  // Clear previous playlist
-  playlist = [];
-  updatePlaylistDisplay();
-  
-  statusEl.textContent = 'Starting continuous listening...';
-  statusEl.className = 'status listening';
-  
-  // Start immediate recognition
-  recognizeSong();
-  
-  // Then continue every 5 seconds
-  recognitionInterval = setInterval(recognizeSong, 5000);
+  try {
+    // Request microphone permission first
+    statusEl.textContent = 'Requesting microphone access...';
+    statusEl.className = 'status processing';
+    
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach(track => track.stop()); // Stop the test stream
+    
+    isListening = true;
+    btn.querySelector('.button-icon').textContent = '⏸';
+    
+    // Clear previous playlist
+    playlist = [];
+    updatePlaylistDisplay();
+    
+    statusEl.textContent = 'Starting continuous listening...';
+    statusEl.className = 'status listening';
+    
+    // Start immediate recognition
+    recognizeSong();
+    
+    // Then continue every 5 seconds
+    recognitionInterval = setInterval(recognizeSong, 5000);
+  } catch (error) {
+    console.error('Microphone access denied:', error);
+    statusEl.textContent = 'Microphone access denied. Please allow microphone access and try again.';
+    statusEl.className = 'status error';
+  }
 }
 
 function stopContinuousListening() {
