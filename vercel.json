@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "shazam-test.mjs",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "shazam-test.mjs"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}
