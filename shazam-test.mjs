@@ -41,7 +41,7 @@ const INDEX_HTML = `<!DOCTYPE html>
 
         body {
             font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 25%, #667eea 50%, #764ba2 75%, #f093fb 100%);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
             background-size: 400% 400%;
             animation: gradientShift 15s ease infinite;
             min-height: 100vh;
@@ -524,7 +524,7 @@ const INDEX_HTML = `<!DOCTYPE html>
 
         .playlist-handle {
             background: #000000;
-            border-radius: 24px 24px 0 0;
+            border-radius: 24px;
             padding: 12px 24px 24px;
             cursor: pointer;
             transition: all 0.3s ease;
