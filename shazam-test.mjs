@@ -656,48 +656,6 @@ const INDEX_HTML = `<!DOCTYPE html>
             cursor: not-allowed;
         }
 
-        .permission-help {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 15px;
-            text-align: left;
-            max-width: 400px;
-        }
-
-        .permission-help p {
-            font-weight: 600;
-            color: #e74c3c;
-            margin-bottom: 10px;
-        }
-
-        .permission-help ul {
-            margin: 10px 0;
-            padding-left: 20px;
-        }
-
-        .permission-help li {
-            margin-bottom: 5px;
-            color: #2d3436;
-        }
-
-        .reset-btn {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-weight: 600;
-            margin-top: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .reset-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-
         .debug-panel h3 {
             margin-bottom: 15px;
             color: #2d3436;
@@ -757,15 +715,6 @@ const INDEX_HTML = `<!DOCTYPE html>
             <div class="home-container">
                 <div class="status-panel">
                     <div id="status" class="status">Ready to listen</div>
-                    <div id="permissionHelp" class="permission-help" style="display: none;">
-                        <p>Microphone access denied. Try:</p>
-                        <ul>
-                            <li>Click the lock icon in your browser address bar</li>
-                            <li>Set microphone to "Allow"</li>
-                            <li>Refresh the page and try again</li>
-                        </ul>
-                        <button id="resetPermissions" class="reset-btn">Reset Permissions & Retry</button>
-                    </div>
                 </div>
 
                 <div class="main-button-container">
@@ -829,8 +778,6 @@ const statusEl = document.getElementById('status');
 const resultEl = document.getElementById('result');
 const playlistEl = document.getElementById('playlist');
 const playlistCountEl = document.getElementById('playlistCount');
-const permissionHelp = document.getElementById('permissionHelp');
-const resetPermissions = document.getElementById('resetPermissions');
 
 let isListening = false;
 let currentSong = null;
@@ -843,24 +790,19 @@ let currentY = 0;
 let isDragging = false;
 
 async function record(ms = 8000) {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
-      ? 'audio/webm;codecs=opus'
-      : 'audio/webm';
-    const rec = new MediaRecorder(stream, { mimeType: mime });
-    const chunks = [];
-    rec.ondataavailable = e => chunks.push(e.data);
-    rec.start();
-    await new Promise(r => setTimeout(r, ms));
-    rec.stop();
-    await new Promise(r => (rec.onstop = r));
-    stream.getTracks().forEach(t => t.stop());
-    return new Blob(chunks, { type: mime });
-  } catch (error) {
-    console.error('Recording failed:', error);
-    throw new Error('Failed to access microphone. Please check your microphone permissions.');
-  }
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+    ? 'audio/webm;codecs=opus'
+    : 'audio/webm';
+  const rec = new MediaRecorder(stream, { mimeType: mime });
+  const chunks = [];
+  rec.ondataavailable = e => chunks.push(e.data);
+  rec.start();
+  await new Promise(r => setTimeout(r, ms));
+  rec.stop();
+  await new Promise(r => (rec.onstop = r));
+  stream.getTracks().forEach(t => t.stop());
+  return new Blob(chunks, { type: mime });
 }
 
 function renderResult(data) {
@@ -988,77 +930,24 @@ async function recognizeSong() {
   }
 }
 
-async function startContinuousListening() {
+function startContinuousListening() {
   if (isListening) return;
   
-  try {
-    // Check if we're on HTTPS or localhost
-    const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-    if (!isSecure) {
-      statusEl.textContent = 'Microphone requires HTTPS. Please use https:// or localhost.';
-      statusEl.className = 'status error';
-      return;
-    }
-    
-    // Check if mediaDevices is available
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      statusEl.textContent = 'Microphone not supported in this browser.';
-      statusEl.className = 'status error';
-      return;
-    }
-    
-    // Request microphone permission first
-    statusEl.textContent = 'Requesting microphone access...';
-    statusEl.className = 'status processing';
-    
-    console.log('Requesting microphone access...');
-    const stream = await navigator.mediaDevices.getUserMedia({ 
-      audio: {
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: true
-      }
-    });
-    console.log('Microphone access granted!');
-    stream.getTracks().forEach(track => track.stop()); // Stop the test stream
-    
-    isListening = true;
-    btn.querySelector('.button-icon').textContent = '⏸';
-    
-    // Clear previous playlist
-    playlist = [];
-    updatePlaylistDisplay();
-    
-    statusEl.textContent = 'Starting continuous listening...';
-    statusEl.className = 'status listening';
-    
-    // Start immediate recognition
-    recognizeSong();
-    
-    // Then continue every 5 seconds
-    recognitionInterval = setInterval(recognizeSong, 5000);
-  } catch (error) {
-    console.error('Microphone access error:', error);
-    
-    let errorMessage = 'Microphone access denied. ';
-    if (error.name === 'NotAllowedError') {
-      errorMessage += 'Please click "Allow" when prompted for microphone access.';
-    } else if (error.name === 'NotFoundError') {
-      errorMessage += 'No microphone found. Please connect a microphone.';
-    } else if (error.name === 'NotSupportedError') {
-      errorMessage += 'Microphone not supported in this browser.';
-    } else {
-      errorMessage += 'Please check your microphone permissions in browser settings.';
-    }
-    
-    statusEl.textContent = errorMessage;
-    statusEl.className = 'status error';
-    
-    // Show permission help if access was denied
-    if (error.name === 'NotAllowedError') {
-      permissionHelp.style.display = 'block';
-    }
-  }
+  isListening = true;
+  btn.querySelector('.button-icon').textContent = '⏸';
+  
+  // Clear previous playlist
+  playlist = [];
+  updatePlaylistDisplay();
+  
+  statusEl.textContent = 'Starting continuous listening...';
+  statusEl.className = 'status listening';
+  
+  // Start immediate recognition
+  recognizeSong();
+  
+  // Then continue every 5 seconds
+  recognitionInterval = setInterval(recognizeSong, 5000);
 }
 
 function stopContinuousListening() {
@@ -1174,32 +1063,9 @@ btn.onclick = () => {
 
 exportBtn.onclick = exportToSpotify;
 
-// Reset permissions button
-resetPermissions.onclick = () => {
-  permissionHelp.style.display = 'none';
-  statusEl.textContent = 'Ready to listen';
-  statusEl.className = 'status';
-  // Try to start listening again
-  startContinuousListening();
-};
-
 // Initialize button icon
 btn.querySelector('.button-icon').textContent = '▶';
 
-// Add instructions for microphone access
-window.addEventListener('load', () => {
-  console.log('App loaded. HTTPS:', location.protocol === 'https:');
-  console.log('MediaDevices available:', !!navigator.mediaDevices);
-  
-  // Check if we can request permissions
-  if (navigator.permissions) {
-    navigator.permissions.query({name: 'microphone'}).then(result => {
-      console.log('Microphone permission state:', result.state);
-    }).catch(err => {
-      console.log('Could not query microphone permissions:', err);
-    });
-  }
-});
 </script>
 </body>
 </html>`;
