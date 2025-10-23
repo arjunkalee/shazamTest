@@ -98,11 +98,99 @@ const INDEX_HTML = `<!DOCTYPE html>
             border: 1px solid rgba(255,255,255,0.3);
         }
 
-        .control-panel {
+        .home-container {
             display: flex;
-            gap: 20px;
+            flex-direction: column;
+            align-items: center;
+            min-height: 60vh;
             justify-content: center;
-            margin-bottom: 30px;
+        }
+
+        .main-button-container {
+            display: flex;
+            justify-content: center;
+            margin: 40px 0;
+        }
+
+        .main-button {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+        }
+
+        .main-button:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 25px 50px rgba(102, 126, 234, 0.4);
+        }
+
+        .main-button:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        .main-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .button-content {
+            text-align: center;
+            z-index: 2;
+        }
+
+        .button-icon {
+            font-size: 3rem;
+            margin-bottom: 8px;
+        }
+
+        .button-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .button-subtitle {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            font-weight: 300;
+        }
+
+        .button-ring {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            animation: pulse-ring 2s infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.1);
+                opacity: 0;
+            }
+        }
+
+        .current-song-section {
+            margin-top: 30px;
+            width: 100%;
+            max-width: 500px;
         }
 
         .btn {
@@ -384,6 +472,29 @@ const INDEX_HTML = `<!DOCTYPE html>
             border-left-color: #764ba2;
         }
 
+        .delete-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            margin-left: 12px;
+            opacity: 0.7;
+        }
+
+        .delete-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+
         .playlist-item img {
             flex-shrink: 0;
             width: 40px;
@@ -414,14 +525,161 @@ const INDEX_HTML = `<!DOCTYPE html>
             margin-top: 3px;
         }
 
-        .debug-panel {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 16px;
-            padding: 24px;
-            margin-top: 24px;
-            border: 1px solid rgba(255,255,255,0.3);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            backdrop-filter: blur(10px);
+        .playlist-button-container {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+
+        .playlist-button {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            min-width: 140px;
+            justify-content: center;
+        }
+
+        .playlist-button:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .playlist-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .playlist-count {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px 24px 0 0;
+            padding: 0;
+            max-height: 80vh;
+            animation: slideUp 0.3s ease-out;
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 24px 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #2d3436;
+            font-size: 1.5rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #636e72;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(0, 0, 0, 0.1);
+            color: #2d3436;
+        }
+
+        .modal-body {
+            padding: 0 24px;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 16px 24px 24px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .export-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #1db954, #1ed760);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(29, 185, 84, 0.3);
+        }
+
+        .export-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(29, 185, 84, 0.4);
+        }
+
+        .export-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .debug-panel h3 {
@@ -480,46 +738,60 @@ const INDEX_HTML = `<!DOCTYPE html>
         </header>
 
         <main>
-            <div class="control-panel">
-                <button id="btn" class="btn btn-primary">
-                    <span class="btn-icon">🎧</span>
-                    <span class="btn-text">Start</span>
+            <div class="home-container">
+                <div class="status-panel">
+                    <div id="status" class="status">Ready to listen</div>
+                </div>
+
+                <div class="main-button-container">
+                    <button id="btn" class="main-button">
+                        <div class="button-content">
+                            <div class="button-icon">🎧</div>
+                            <div class="button-text">Start Listening</div>
+                            <div class="button-subtitle">Tap to begin music recognition</div>
+                        </div>
+                        <div class="button-ring"></div>
+                    </button>
+                </div>
+
+                <div class="current-song-section">
+                    <div id="result" class="result">
+                        <div class="empty-state">
+                            <p>No song detected yet. Start listening to see results.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Playlist Button (Fixed at bottom) -->
+            <div class="playlist-button-container">
+                <button id="playlistBtn" class="playlist-button" disabled>
+                    <span class="playlist-icon">📋</span>
+                    <span class="playlist-text">Playlist</span>
+                    <span id="playlistCount" class="playlist-count">0</span>
                 </button>
             </div>
 
-            <div class="status-panel">
-                <div id="status" class="status">Ready to listen</div>
-            </div>
-
-            <div class="result-section">
-                <h2>Current Song</h2>
-                <div id="result" class="result">
-                    <div class="empty-state">
-                        <p>No song detected yet. Start listening to see results.</p>
+            <!-- Playlist Modal -->
+            <div id="playlistModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Your Playlist</h2>
+                        <button id="closeModal" class="close-btn">&times;</button>
                     </div>
-                </div>
-            </div>
-
-            <div class="playlist-section">
-                <h2>Playlist (<span id="playlistCount">0</span> songs)</h2>
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <button id="exportBtn" class="btn btn-primary" style="background: linear-gradient(45deg, #1db954, #1ed760);" disabled>
-                        <span class="btn-icon">🎵</span>
-                        <span class="btn-text">Export to Spotify</span>
-                    </button>
-                </div>
-                <div id="playlist" class="playlist">
-                    <div class="empty-state">
-                        <p>No songs in playlist yet. Start listening to build your playlist.</p>
+                    <div class="modal-body">
+                        <div id="playlist" class="playlist">
+                            <div class="empty-state">
+                                <p>No songs in playlist yet. Start listening to build your playlist.</p>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-
-            <div class="debug-panel">
-                <h3>Debug Info</h3>
-                <div id="debugInfo" class="debug-info">
-                    <p>Status: <span id="debugStatus">Ready</span></p>
-                    <p>Last Activity: <span id="lastActivity">None</span></p>
+                    <div class="modal-footer">
+                        <button id="exportBtn" class="export-btn" disabled>
+                            <span class="btn-icon">🎵</span>
+                            <span class="btn-text">Export to Spotify</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </main>
@@ -528,12 +800,13 @@ const INDEX_HTML = `<!DOCTYPE html>
 <script>
 const btn = document.getElementById('btn');
 const exportBtn = document.getElementById('exportBtn');
+const playlistBtn = document.getElementById('playlistBtn');
+const playlistModal = document.getElementById('playlistModal');
+const closeModal = document.getElementById('closeModal');
 const statusEl = document.getElementById('status');
 const resultEl = document.getElementById('result');
 const playlistEl = document.getElementById('playlist');
 const playlistCountEl = document.getElementById('playlistCount');
-const debugStatusEl = document.getElementById('debugStatus');
-const lastActivityEl = document.getElementById('lastActivity');
 
 let isListening = false;
 let currentSong = null;
@@ -621,7 +894,8 @@ function addToPlaylist(songData) {
 function updatePlaylistDisplay() {
   playlistCountEl.textContent = playlist.length;
   
-  // Enable/disable export button based on playlist content
+  // Enable/disable buttons based on playlist content
+  playlistBtn.disabled = playlist.length === 0;
   exportBtn.disabled = playlist.length === 0;
   
   if (playlist.length === 0) {
@@ -629,16 +903,22 @@ function updatePlaylistDisplay() {
     return;
   }
   
-  playlistEl.innerHTML = playlist.map(song => \`
-    <div class="playlist-item">
+  playlistEl.innerHTML = playlist.map((song, index) => \`
+    <div class="playlist-item" data-index="\${index}">
       \${song.coverArt ? \`<img src="\${song.coverArt}" alt="Cover Art">\` : '<div style="width: 40px; height: 40px; background: #ddd; border-radius: 6px; margin-right: 12px;"></div>'}
       <div class="playlist-item-info">
         <div class="playlist-item-title">\${song.title}</div>
         <div class="playlist-item-artist">\${song.artist}</div>
         <div class="playlist-item-time">Added at \${song.timestamp}</div>
       </div>
+      <button class="delete-btn" onclick="deleteFromPlaylist(\${index})" title="Remove from playlist">×</button>
     </div>
   \`).join('');
+}
+
+function deleteFromPlaylist(index) {
+  playlist.splice(index, 1);
+  updatePlaylistDisplay();
 }
 
 async function recognizeSong() {
@@ -683,8 +963,8 @@ function startContinuousListening() {
   if (isListening) return;
   
   isListening = true;
-  btn.textContent = 'Stop';
-  btn.className = 'btn btn-primary';
+  btn.querySelector('.button-text').textContent = 'Stop Listening';
+  btn.querySelector('.button-subtitle').textContent = 'Tap to stop';
   
   // Clear previous playlist
   playlist = [];
@@ -704,8 +984,8 @@ function stopContinuousListening() {
   if (!isListening) return;
   
   isListening = false;
-  btn.textContent = 'Start';
-  btn.className = 'btn btn-primary';
+  btn.querySelector('.button-text').textContent = 'Start Listening';
+  btn.querySelector('.button-subtitle').textContent = 'Tap to begin music recognition';
   
   if (recognitionInterval) {
     clearInterval(recognitionInterval);
@@ -714,7 +994,6 @@ function stopContinuousListening() {
   
   statusEl.textContent = \`Stopped listening. Found \${playlist.length} songs in playlist.\`;
   statusEl.className = 'status';
-  debugStatusEl.textContent = 'Stopped';
 }
 
 async function exportToSpotify() {
@@ -763,6 +1042,23 @@ async function exportToSpotify() {
   }
 }
 
+// Modal functionality
+playlistBtn.onclick = () => {
+  playlistModal.style.display = 'block';
+};
+
+closeModal.onclick = () => {
+  playlistModal.style.display = 'none';
+};
+
+// Close modal when clicking outside
+window.onclick = (event) => {
+  if (event.target === playlistModal) {
+    playlistModal.style.display = 'none';
+  }
+};
+
+// Main button functionality
 btn.onclick = () => {
   if (isListening) {
     stopContinuousListening();
@@ -774,7 +1070,7 @@ btn.onclick = () => {
 exportBtn.onclick = exportToSpotify;
 
 // Initialize button text
-btn.textContent = 'Start';
+btn.querySelector('.button-text').textContent = 'Start Listening';
 </script>
 </body>
 </html>`;
