@@ -656,6 +656,48 @@ const INDEX_HTML = `<!DOCTYPE html>
             cursor: not-allowed;
         }
 
+        .permission-help {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 15px;
+            text-align: left;
+            max-width: 400px;
+        }
+
+        .permission-help p {
+            font-weight: 600;
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+
+        .permission-help ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .permission-help li {
+            margin-bottom: 5px;
+            color: #2d3436;
+        }
+
+        .reset-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
         .debug-panel h3 {
             margin-bottom: 15px;
             color: #2d3436;
@@ -713,9 +755,18 @@ const INDEX_HTML = `<!DOCTYPE html>
 
         <main>
             <div class="home-container">
-            <div class="status-panel">
-                <div id="status" class="status">Ready to listen</div>
-            </div>
+                <div class="status-panel">
+                    <div id="status" class="status">Ready to listen</div>
+                    <div id="permissionHelp" class="permission-help" style="display: none;">
+                        <p>Microphone access denied. Try:</p>
+                        <ul>
+                            <li>Click the lock icon in your browser address bar</li>
+                            <li>Set microphone to "Allow"</li>
+                            <li>Refresh the page and try again</li>
+                        </ul>
+                        <button id="resetPermissions" class="reset-btn">Reset Permissions & Retry</button>
+                    </div>
+                </div>
 
                 <div class="main-button-container">
                     <button id="btn" class="main-button">
@@ -778,6 +829,8 @@ const statusEl = document.getElementById('status');
 const resultEl = document.getElementById('result');
 const playlistEl = document.getElementById('playlist');
 const playlistCountEl = document.getElementById('playlistCount');
+const permissionHelp = document.getElementById('permissionHelp');
+const resetPermissions = document.getElementById('resetPermissions');
 
 let isListening = false;
 let currentSong = null;
@@ -1000,6 +1053,11 @@ async function startContinuousListening() {
     
     statusEl.textContent = errorMessage;
     statusEl.className = 'status error';
+    
+    // Show permission help if access was denied
+    if (error.name === 'NotAllowedError') {
+      permissionHelp.style.display = 'block';
+    }
   }
 }
 
@@ -1115,6 +1173,15 @@ btn.onclick = () => {
 };
 
 exportBtn.onclick = exportToSpotify;
+
+// Reset permissions button
+resetPermissions.onclick = () => {
+  permissionHelp.style.display = 'none';
+  statusEl.textContent = 'Ready to listen';
+  statusEl.className = 'status';
+  // Try to start listening again
+  startContinuousListening();
+};
 
 // Initialize button icon
 btn.querySelector('.button-icon').textContent = '▶';
