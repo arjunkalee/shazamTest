@@ -31,7 +31,7 @@ const INDEX_HTML = `<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shazam Test - Music Recognition</title>
+    <title>Listify - Music Recognition</title>
     <style>
         * {
             margin: 0;
@@ -343,7 +343,7 @@ const INDEX_HTML = `<!DOCTYPE html>
 <body>
     <div class="container">
         <header>
-            <h1>🎵 Shazam Test</h1>
+            <h1>🎵 Listify</h1>
             <p>Click "Start" to begin continuous listening. It will check every 5 seconds for different songs.</p>
         </header>
 
