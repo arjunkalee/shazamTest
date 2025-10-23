@@ -1,0 +1,29 @@
+{
+  "name": "listify",
+  "version": "1.0.0",
+  "description": "A web app that listens for music and automatically adds songs to a playlist using voice recognition",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server . -p 3000 -o",
+    "dev": "npx live-server --port=3000 --open=/",
+    "test": "echo \"No tests specified yet\" && exit 0"
+  },
+  "keywords": [
+    "music",
+    "recognition",
+    "playlist",
+    "voice",
+    "microphone",
+    "shazam"
+  ],
+  "author": "Listify Team",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "live-server": "^1.2.2"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "multer": "^2.0.2"
+  }
+}
