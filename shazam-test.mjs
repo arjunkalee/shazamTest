@@ -513,40 +513,47 @@ const INDEX_HTML = `<!DOCTYPE html>
             margin-top: 3px;
         }
 
-        .playlist-button-container {
+        .playlist-handle-container {
             position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
+            bottom: 0;
+            left: 0;
+            right: 0;
             z-index: 100;
+            pointer-events: none;
         }
 
-        .playlist-button {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 16px 24px;
+        .playlist-handle {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            font-weight: 600;
+            border-radius: 24px 24px 0 0;
+            padding: 12px 24px 24px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-            min-width: 140px;
+            box-shadow: 0 -5px 20px rgba(102, 126, 234, 0.3);
+            pointer-events: all;
+            position: relative;
+        }
+
+        .playlist-handle:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 -10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .handle-indicator {
+            width: 40px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            margin: 0 auto 12px;
+        }
+
+        .handle-content {
+            display: flex;
+            align-items: center;
             justify-content: center;
-        }
-
-        .playlist-button:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
-        }
-
-        .playlist-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+            gap: 12px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
         }
 
         .playlist-count {
@@ -727,9 +734,9 @@ const INDEX_HTML = `<!DOCTYPE html>
 
         <main>
             <div class="home-container">
-                <div class="status-panel">
-                    <div id="status" class="status">Ready to listen</div>
-                </div>
+            <div class="status-panel">
+                <div id="status" class="status">Ready to listen</div>
+            </div>
 
                 <div class="main-button-container">
                     <button id="btn" class="main-button">
@@ -741,21 +748,24 @@ const INDEX_HTML = `<!DOCTYPE html>
                 </div>
 
                 <div class="current-song-section">
-                    <div id="result" class="result">
-                        <div class="empty-state">
-                            <p>No song detected yet. Start listening to see results.</p>
+                <div id="result" class="result">
+                    <div class="empty-state">
+                        <p>No song detected yet. Start listening to see results.</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Playlist Button (Fixed at bottom) -->
-            <div class="playlist-button-container">
-                <button id="playlistBtn" class="playlist-button" disabled>
-                    <span class="playlist-icon">📋</span>
-                    <span class="playlist-text">Playlist</span>
-                    <span id="playlistCount" class="playlist-count">0</span>
-                </button>
+            <!-- Playlist Sliding Handle (Fixed at bottom) -->
+            <div class="playlist-handle-container" id="playlistHandle">
+                <div class="playlist-handle" id="playlistHandleBar">
+                    <div class="handle-indicator"></div>
+                    <div class="handle-content">
+                        <span class="playlist-icon">📋</span>
+                        <span class="playlist-text">Playlist</span>
+                        <span id="playlistCount" class="playlist-count">0</span>
+                    </div>
+                </div>
             </div>
 
             <!-- Playlist Modal -->
@@ -766,12 +776,12 @@ const INDEX_HTML = `<!DOCTYPE html>
                         <button id="closeModal" class="close-btn">&times;</button>
                     </div>
                     <div class="modal-body">
-                        <div id="playlist" class="playlist">
-                            <div class="empty-state">
-                                <p>No songs in playlist yet. Start listening to build your playlist.</p>
-                            </div>
-                        </div>
+                <div id="playlist" class="playlist">
+                    <div class="empty-state">
+                        <p>No songs in playlist yet. Start listening to build your playlist.</p>
                     </div>
+                </div>
+            </div>
                     <div class="modal-footer">
                         <button id="exportBtn" class="export-btn" disabled>
                             <span class="btn-icon">🎵</span>
@@ -786,7 +796,8 @@ const INDEX_HTML = `<!DOCTYPE html>
 <script>
 const btn = document.getElementById('btn');
 const exportBtn = document.getElementById('exportBtn');
-const playlistBtn = document.getElementById('playlistBtn');
+const playlistHandle = document.getElementById('playlistHandle');
+const playlistHandleBar = document.getElementById('playlistHandleBar');
 const playlistModal = document.getElementById('playlistModal');
 const closeModal = document.getElementById('closeModal');
 const statusEl = document.getElementById('status');
@@ -798,6 +809,11 @@ let isListening = false;
 let currentSong = null;
 let recognitionInterval = null;
 let playlist = [];
+
+// Touch/swipe functionality for playlist handle
+let startY = 0;
+let currentY = 0;
+let isDragging = false;
 
 async function record(ms = 8000) {
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -881,7 +897,8 @@ function updatePlaylistDisplay() {
   playlistCountEl.textContent = playlist.length;
   
   // Enable/disable buttons based on playlist content
-  playlistBtn.disabled = playlist.length === 0;
+  playlistHandle.style.opacity = playlist.length === 0 ? '0.5' : '1';
+  playlistHandle.style.pointerEvents = playlist.length === 0 ? 'none' : 'all';
   exportBtn.disabled = playlist.length === 0;
   
   if (playlist.length === 0) {
@@ -1020,9 +1037,34 @@ async function exportToSpotify() {
   }
 }
 
+// Touch/swipe functionality for playlist handle
+playlistHandleBar.addEventListener('touchstart', (e) => {
+  if (playlist.length === 0) return;
+  startY = e.touches[0].clientY;
+  isDragging = true;
+});
+
+playlistHandleBar.addEventListener('touchmove', (e) => {
+  if (!isDragging || playlist.length === 0) return;
+  currentY = e.touches[0].clientY;
+  const deltaY = startY - currentY;
+  
+  // If swiping up significantly, open modal
+  if (deltaY > 50) {
+    playlistModal.style.display = 'block';
+    isDragging = false;
+  }
+});
+
+playlistHandleBar.addEventListener('touchend', () => {
+  isDragging = false;
+});
+
 // Modal functionality
-playlistBtn.onclick = () => {
-  playlistModal.style.display = 'block';
+playlistHandleBar.onclick = () => {
+  if (playlist.length > 0) {
+    playlistModal.style.display = 'block';
+  }
 };
 
 closeModal.onclick = () => {
@@ -1193,8 +1235,8 @@ export default app;
 
 // For local development
 if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, () => {
-    console.log(`\nShazam test running on http://localhost:${PORT}\n`);
-    console.log(`Press Ctrl+C to stop.`);
-  });
+app.listen(PORT, () => {
+  console.log(`\nShazam test running on http://localhost:${PORT}\n`);
+  console.log(`Press Ctrl+C to stop.`);
+});
 }
