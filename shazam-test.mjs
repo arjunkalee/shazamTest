@@ -41,11 +41,9 @@ const INDEX_HTML = `<!DOCTYPE html>
 
         body {
             font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-            background-size: 400% 400%;
-            animation: gradientShift 15s ease infinite;
+            background: #1a1a2e;
             min-height: 100vh;
-            color: #333;
+            color: #f5f5f5;
         }
 
         @keyframes gradientShift {
@@ -90,13 +88,14 @@ const INDEX_HTML = `<!DOCTYPE html>
         }
 
         main {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(26, 26, 46, 0.9);
             border-radius: 24px 24px 0 0;
             padding: 40px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.1);
             position: relative;
             padding-bottom: 70px;
+            color: #f5f5f5;
         }
 
         .home-container {
@@ -249,11 +248,12 @@ const INDEX_HTML = `<!DOCTYPE html>
             font-weight: 600;
             margin-bottom: 15px;
             padding: 12px 24px;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 30px;
             display: inline-block;
-            border: 1px solid rgba(255,255,255,0.3);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            color: #f5f5f5;
         }
 
         .status.listening {
@@ -327,7 +327,7 @@ const INDEX_HTML = `<!DOCTYPE html>
 
         .empty-state {
             text-align: center;
-            color: #636e72;
+            color: #b3b3b3;
             font-style: italic;
             padding: 40px 20px;
         }
@@ -336,12 +336,12 @@ const INDEX_HTML = `<!DOCTYPE html>
             display: flex;
             align-items: center;
             padding: 20px;
-            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 16px;
             margin-bottom: 12px;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid rgba(255,255,255,0.5);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
             position: relative;
             overflow: hidden;
         }
@@ -373,9 +373,9 @@ const INDEX_HTML = `<!DOCTYPE html>
         }
 
         .song-item:hover {
-            background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%);
+            background: rgba(255, 255, 255, 0.1);
             transform: translateX(8px) translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
         }
 
         .song-item:hover img {
@@ -388,12 +388,12 @@ const INDEX_HTML = `<!DOCTYPE html>
 
         .song-title {
             font-weight: 600;
-            color: #2d3436;
+            color: #f5f5f5;
             margin-bottom: 5px;
         }
 
         .song-artist {
-            color: #636e72;
+            color: #b3b3b3;
             font-size: 0.9rem;
         }
 
@@ -418,7 +418,7 @@ const INDEX_HTML = `<!DOCTYPE html>
             padding: 20px;
             max-height: 400px;
             overflow-y: auto;
-            background: rgba(255, 255, 255, 0.5);
+            background: rgba(0, 0, 0, 0.2);
         }
 
         .playlist::-webkit-scrollbar {
@@ -443,19 +443,19 @@ const INDEX_HTML = `<!DOCTYPE html>
             display: flex;
             align-items: center;
             padding: 16px;
-            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 12px;
             margin-bottom: 10px;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             border-left: 4px solid #667eea;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
             position: relative;
         }
 
         .playlist-item:hover {
-            background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%);
+            background: rgba(255, 255, 255, 0.1);
             transform: translateX(5px) translateY(-1px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
             border-left-color: #764ba2;
         }
 
@@ -496,13 +496,13 @@ const INDEX_HTML = `<!DOCTYPE html>
 
         .playlist-item-title {
             font-weight: 600;
-            color: #2d3436;
+            color: #f5f5f5;
             margin-bottom: 3px;
             font-size: 0.95rem;
         }
 
         .playlist-item-artist {
-            color: #636e72;
+            color: #b3b3b3;
             font-size: 0.85rem;
         }
 
@@ -570,12 +570,12 @@ const INDEX_HTML = `<!DOCTYPE html>
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(26, 26, 46, 0.98);
             border-radius: 24px 24px 0 0;
             padding: 0;
             max-height: 80vh;
             animation: slideUp 0.3s ease-out;
-            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
         }
 
         @keyframes slideUp {
@@ -592,12 +592,12 @@ const INDEX_HTML = `<!DOCTYPE html>
             justify-content: space-between;
             align-items: center;
             padding: 24px 24px 16px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .modal-header h2 {
             margin: 0;
-            color: #2d3436;
+            color: #f5f5f5;
             font-size: 1.5rem;
         }
 
@@ -606,7 +606,7 @@ const INDEX_HTML = `<!DOCTYPE html>
             border: none;
             font-size: 2rem;
             cursor: pointer;
-            color: #636e72;
+            color: #b3b3b3;
             padding: 0;
             width: 32px;
             height: 32px;
@@ -618,8 +618,8 @@ const INDEX_HTML = `<!DOCTYPE html>
         }
 
         .close-btn:hover {
-            background: rgba(0, 0, 0, 0.1);
-            color: #2d3436;
+            background: rgba(255, 255, 255, 0.1);
+            color: #f5f5f5;
         }
 
         .modal-body {
@@ -630,7 +630,7 @@ const INDEX_HTML = `<!DOCTYPE html>
 
         .modal-footer {
             padding: 16px 24px 24px;
-            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .export-btn {
