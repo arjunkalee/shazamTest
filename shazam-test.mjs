@@ -91,10 +91,12 @@ const INDEX_HTML = `<!DOCTYPE html>
 
         main {
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 24px;
+            border-radius: 24px 24px 0 0;
             padding: 40px;
             box-shadow: 0 25px 50px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.2);
             border: 1px solid rgba(255,255,255,0.3);
+            position: relative;
+            padding-bottom: 70px;
         }
 
         .home-container {
@@ -512,29 +514,35 @@ const INDEX_HTML = `<!DOCTYPE html>
 
         .playlist-handle-container {
             width: 100%;
-            margin-top: 40px;
-            margin-bottom: 20px;
+            margin-top: 0;
+            margin-bottom: 0;
             pointer-events: none;
-            display: flex;
-            justify-content: center;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 0 40px 0 40px;
         }
 
         .playlist-handle {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
+            border-radius: 20px 20px 0 0;
             padding: 16px 24px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
             pointer-events: all;
             position: relative;
-            max-width: 300px;
-            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
         }
 
         .playlist-handle:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.15);
         }
 
         .handle-indicator {
