@@ -877,7 +877,7 @@ const INDEX_HTML = `<!DOCTYPE html>
         <main>
             <div class="home-container">
             <div class="status-panel">
-                <div id="status" class="status">Ready to listen</div>
+                <div id="status" class="status"></div>
             </div>
 
                 <div class="main-button-container">
