@@ -84,6 +84,12 @@ const INDEX_HTML = `<!DOCTYPE html>
             background: rgba(255, 255, 255, 0.5);
         }
 
+        body.light-mode .status {
+            background: rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            color: #2d3436;
+        }
+
         @keyframes gradientShift {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
