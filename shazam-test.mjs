@@ -22,6 +22,11 @@ const app = express();
 const upload = multer(); // in-memory
 const PORT = process.env.PORT || 3001;
 
+// Spotify API credentials
+const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
+const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
+const SPOTIFY_REDIRECT_URI = process.env.SPOTIFY_REDIRECT_URI || 'http://localhost:3001/spotify/callback';
+
 // Add JSON parsing middleware
 app.use(express.json());
 
@@ -1153,13 +1158,16 @@ async function exportToSpotify() {
       statusEl.textContent = \`✅ Playlist exported! \${result.songsCount} songs ready for Spotify.\`;
       statusEl.className = 'status';
       
-      // Create the export page URL with playlist data
-      const playlistName = encodeURIComponent(result.playlistName);
-      const playlistData = encodeURIComponent(JSON.stringify(result.songs));
-      const exportUrl = \`/export/\${playlistName}?data=\${playlistData}\`;
-      
-      // Open the export page in a new tab
-      window.open(exportUrl, '_blank');
+      // If OAuth is available, redirect to login
+      if (result.hasOAuth && result.authUrl) {
+        window.location.href = result.authUrl;
+      } else {
+        // Otherwise, open the manual export page
+        const playlistName = encodeURIComponent(result.playlistName);
+        const playlistData = encodeURIComponent(JSON.stringify(result.songs));
+        const exportUrl = \`/export/\${playlistName}?data=\${playlistData}\`;
+        window.open(exportUrl, '_blank');
+      }
     } else {
       throw new Error(result.error || 'Export failed');
     }
@@ -1286,6 +1294,142 @@ app.post("/api/recognize", upload.single("file"), async (req, res) => {
   }
 });
 
+// Spotify OAuth routes
+app.get("/spotify/login", (req, res) => {
+  if (!SPOTIFY_CLIENT_ID) {
+    return res.status(400).json({ 
+      error: "Spotify API not configured. Please set SPOTIFY_CLIENT_ID environment variable." 
+    });
+  }
+
+  const scope = 'playlist-modify-public playlist-modify-private';
+  const authUrl = `https://accounts.spotify.com/authorize?` +
+    `client_id=${SPOTIFY_CLIENT_ID}&` +
+    `response_type=code&` +
+    `redirect_uri=${encodeURIComponent(SPOTIFY_REDIRECT_URI)}&` +
+    `scope=${encodeURIComponent(scope)}&` +
+    `state=${req.query.state || ''}`;
+  
+  res.redirect(authUrl);
+});
+
+app.get("/spotify/callback", async (req, res) => {
+  const { code, state } = req.query;
+  const playlistData = state ? JSON.parse(decodeURIComponent(state)) : null;
+
+  if (!code) {
+    return res.send('Authorization failed. Please try again.');
+  }
+
+  try {
+    // Exchange code for access token
+    const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${Buffer.from(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`).toString('base64')}`
+      },
+      body: `grant_type=authorization_code&code=${code}&redirect_uri=${encodeURIComponent(SPOTIFY_REDIRECT_URI)}`
+    });
+
+    const tokenData = await tokenResponse.json();
+    const accessToken = tokenData.access_token;
+
+    if (!accessToken) {
+      throw new Error('Failed to get access token');
+    }
+
+    if (playlistData) {
+      // Create playlist
+      const createResponse = await fetch(`https://api.spotify.com/v1/me/playlists`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: playlistData.name,
+          description: 'Created from Listify',
+          public: false
+        })
+      });
+
+      const playlist = await createResponse.json();
+      const playlistId = playlist.id;
+
+      // Search for tracks and add to playlist
+      const trackUris = [];
+      for (const song of playlistData.songs) {
+        try {
+          const searchResponse = await fetch(
+            `https://api.spotify.com/v1/search?q=${encodeURIComponent(`${song.title} artist:${song.artist}`)}&type=track&limit=1`,
+            {
+              headers: { 'Authorization': `Bearer ${accessToken}` }
+            }
+          );
+          const searchData = await searchResponse.json();
+          if (searchData.tracks.items.length > 0) {
+            trackUris.push(searchData.tracks.items[0].uri);
+          }
+        } catch (err) {
+          console.error(`Failed to find track: ${song.title} - ${song.artist}`);
+        }
+      }
+
+      // Add tracks to playlist
+      if (trackUris.length > 0) {
+        await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ uris: trackUris })
+        });
+      }
+
+      res.send(`
+        <html>
+          <head>
+            <title>Playlist Created!</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 40px; text-align: center; background: #191414; color: white; }
+              .success { background: #1db954; padding: 30px; border-radius: 10px; margin: 20px auto; max-width: 500px; }
+              .spotify-btn { background: #1db954; color: white; padding: 15px 30px; border-radius: 25px; text-decoration: none; display: inline-block; margin-top: 20px; }
+            </style>
+          </head>
+          <body>
+            <div class="success">
+              <h1>✅ Playlist Created!</h1>
+              <p>Your playlist "${playlistData.name}" has been created on Spotify!</p>
+              <a href="${playlist.external_urls.spotify}" target="_blank" class="spotify-btn">Open Playlist on Spotify</a>
+            </div>
+          </body>
+        </html>
+      `);
+    } else {
+      res.send(`
+        <html>
+          <head>
+            <title>Connected to Spotify</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 40px; text-align: center; background: #191414; color: white; }
+            </style>
+          </head>
+          <body>
+            <h1>✅ Connected to Spotify</h1>
+            <p>You can now go back to Listify and export your playlist!</p>
+          </body>
+        </html>
+      `);
+    }
+
+  } catch (err) {
+    console.error('Spotify OAuth error:', err);
+    res.send(`Error: ${err.message}`);
+  }
+});
+
 app.post("/api/export-spotify", async (req, res) => {
   try {
     const { playlist, playlistName } = req.body;
@@ -1294,9 +1438,36 @@ app.post("/api/export-spotify", async (req, res) => {
       return res.status(400).json({ error: "No playlist data provided" });
     }
 
-    // Return JSON response with export data
+    // Check if Spotify API is configured
+    if (!SPOTIFY_CLIENT_ID) {
+      // Return basic export data without OAuth
+      const exportData = {
+        success: true,
+        playlistName: playlistName,
+        songsCount: playlist.length,
+        songs: playlist.map(song => ({
+          title: song.title,
+          artist: song.artist,
+          spotifySearchUrl: `https://open.spotify.com/search/${encodeURIComponent(`${song.title} ${song.artist}`)}`
+        })),
+        hasOAuth: false
+      };
+      return res.json(exportData);
+    }
+
+    // Return OAuth authorization URL
+    const state = encodeURIComponent(JSON.stringify({
+      name: playlistName,
+      songs: playlist.map(song => ({
+        title: song.title,
+        artist: song.artist
+      }))
+    }));
+
     const exportData = {
       success: true,
+      hasOAuth: true,
+      authUrl: `/spotify/login?state=${state}`,
       playlistName: playlistName,
       songsCount: playlist.length,
       songs: playlist.map(song => ({
