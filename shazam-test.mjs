@@ -1345,9 +1345,11 @@ app.get("/export/:playlistName", (req, res) => {
         
         <div class="playlist-info">
             <h3>📋 Export Instructions:</h3>
-            <p>1. Click "Search on Spotify" for each song to find it</p>
-            <p>2. Add each song to a new playlist in Spotify</p>
-            <p>3. Name your playlist "${playlistName}"</p>
+            <button id="createPlaylistBtn" class="spotify-btn" style="padding: 12px 24px; font-size: 16px; margin-bottom: 15px;">
+                🎵 Create Playlist on Spotify
+            </button>
+            <p><strong>Option 1:</strong> Click the button above to open Spotify and create your playlist automatically!</p>
+            <p><strong>Option 2:</strong> Use the "Search on Spotify" links below to find and add each song manually.</p>
         </div>
 
         <div id="song-list" class="song-list">
@@ -1355,18 +1357,20 @@ app.get("/export/:playlistName", (req, res) => {
         </div>
 
         <div class="instructions">
-            <h3>💡 Pro Tip:</h3>
-            <p>For automatic playlist creation, you would need Spotify Web API integration with OAuth authentication. This export provides direct links to search for each song on Spotify.</p>
+            <h3>💡 How to Use:</h3>
+            <p><strong>Automatic Option:</strong> Click "Create Playlist on Spotify" button above. It will open Spotify and copy your full playlist to clipboard for easy reference!</p>
+            <p><strong>Manual Option:</strong> Click individual "Search on Spotify" links below to search and add each song one by one.</p>
         </div>
 
         <script>
             // Get playlist data from URL parameters
             const urlParams = new URLSearchParams(window.location.search);
             const playlistData = urlParams.get('data');
+            let songs = [];
             
             if (playlistData) {
                 try {
-                    const songs = JSON.parse(decodeURIComponent(playlistData));
+                    songs = JSON.parse(decodeURIComponent(playlistData));
                     const songListEl = document.getElementById('song-list');
                     
                     songListEl.innerHTML = songs.map(song => \`
@@ -1384,6 +1388,38 @@ app.get("/export/:playlistName", (req, res) => {
                     document.getElementById('song-list').innerHTML = '<p>Error loading playlist data.</p>';
                 }
             }
+
+            // Create playlist on Spotify
+            document.getElementById('createPlaylistBtn').addEventListener('click', function() {
+                // Build the query string from all songs
+                const query = songs.map(song => song.title + ' ' + song.artist).join(' OR ');
+                // Spotify deep link to search
+                const spotifyUrl = 'https://open.spotify.com/search/' + encodeURIComponent(query);
+                
+                // Copy playlist data to clipboard for easy pasting
+                const playlistText = songs.map((song, index) => 
+                    \`\${index + 1}. \${song.title} - \${song.artist}\`
+                ).join('\\n');
+                
+                // For best results, open first song in Spotify
+                if (songs.length > 0) {
+                    window.open(songs[0].spotifySearchUrl, '_blank');
+                    
+                    // Show instructions
+                    alert('Playlist Creation Instructions:\\n\\n' +
+                        '1. Click on "Search for songs" in Spotify\\n' +
+                        '2. Create a new playlist called "${playlistName}"\\n' +
+                        '3. Paste the playlist below and use it to manually search for each song:\\n\\n' +
+                        playlistText);
+                    
+                    // Try to copy to clipboard
+                    navigator.clipboard.writeText(playlistText).then(() => {
+                        console.log('Playlist copied to clipboard!');
+                    }).catch(() => {
+                        console.log('Could not copy to clipboard');
+                    });
+                }
+            });
         </script>
     </body>
     </html>`;
