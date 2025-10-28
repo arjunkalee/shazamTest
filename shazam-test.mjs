@@ -511,36 +511,35 @@ const INDEX_HTML = `<!DOCTYPE html>
         }
 
         .playlist-handle-container {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
+            width: 100%;
+            margin-top: 30px;
             pointer-events: none;
         }
 
         .playlist-handle {
-            background: #000000;
-            border-radius: 24px;
-            padding: 12px 24px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 16px 24px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
             pointer-events: all;
             position: relative;
+            max-width: 300px;
+            margin: 0 auto;
         }
 
         .playlist-handle:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
         }
 
         .handle-indicator {
             width: 40px;
             height: 4px;
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.5);
             border-radius: 2px;
-            margin: 0 auto 12px;
+            margin: 0 auto 8px;
         }
 
 
@@ -728,12 +727,13 @@ const INDEX_HTML = `<!DOCTYPE html>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Playlist Sliding Handle (Fixed at bottom) -->
-            <div class="playlist-handle-container" id="playlistHandle">
-                <div class="playlist-handle" id="playlistHandleBar">
-                    <div class="handle-indicator"></div>
+                <!-- Playlist Handle -->
+                <div class="playlist-handle-container" id="playlistHandle">
+                    <div class="playlist-handle" id="playlistHandleBar">
+                        <div class="handle-indicator"></div>
+                        <span style="color: white; font-weight: 600;">View Playlist</span>
+                    </div>
                 </div>
             </div>
 
