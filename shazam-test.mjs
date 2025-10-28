@@ -525,12 +525,12 @@ const INDEX_HTML = `<!DOCTYPE html>
         }
 
         .playlist-handle {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #000000;
             border-radius: 20px 20px 0 0;
             padding: 16px 24px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
             pointer-events: all;
             position: relative;
             width: 100%;
@@ -542,15 +542,15 @@ const INDEX_HTML = `<!DOCTYPE html>
 
         .playlist-handle:hover {
             transform: translateY(-2px);
-            box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.4);
         }
 
         .handle-indicator {
             width: 40px;
             height: 4px;
-            background: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.8);
             border-radius: 2px;
-            margin: 0 auto 8px;
+            margin: 0 auto 0;
         }
 
 
@@ -744,7 +744,6 @@ const INDEX_HTML = `<!DOCTYPE html>
             <div class="playlist-handle-container" id="playlistHandle">
                 <div class="playlist-handle" id="playlistHandleBar">
                     <div class="handle-indicator"></div>
-                    <span style="color: white; font-weight: 600;">View Playlist</span>
                 </div>
             </div>
 
