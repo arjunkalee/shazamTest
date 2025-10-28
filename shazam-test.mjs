@@ -896,9 +896,6 @@ const INDEX_HTML = `<!DOCTYPE html>
 
                 <div class="current-song-section">
                 <div id="result" class="result">
-                    <div class="empty-state">
-                        <p>No song detected yet. Start listening to see results.</p>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -919,9 +916,6 @@ const INDEX_HTML = `<!DOCTYPE html>
                     </div>
                     <div class="modal-body">
                         <div id="playlist" class="playlist">
-                            <div class="empty-state">
-                                <p>No songs in playlist yet. Start listening to build your playlist.</p>
-                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -1044,7 +1038,7 @@ function updatePlaylistDisplay() {
   exportBtn.disabled = playlist.length === 0;
   
   if (playlist.length === 0) {
-    playlistEl.innerHTML = '<div class="empty-state"><p>No songs in playlist yet. Start listening to build your playlist.</p></div>';
+    playlistEl.innerHTML = '';
     return;
   }
   
