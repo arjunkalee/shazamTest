@@ -46,6 +46,44 @@ const INDEX_HTML = `<!DOCTYPE html>
             color: #f5f5f5;
         }
 
+        body.light-mode {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            color: #333;
+        }
+
+        body.light-mode main {
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        body.light-mode .song-title,
+        body.light-mode .playlist-item-title {
+            color: #2d3436;
+        }
+
+        body.light-mode .song-artist,
+        body.light-mode .playlist-item-artist {
+            color: #636e72;
+        }
+
+        body.light-mode .song-item,
+        body.light-mode .playlist-item {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        body.light-mode .song-item:hover,
+        body.light-mode .playlist-item:hover {
+            background: rgba(255, 255, 255, 1);
+        }
+
+        body.light-mode .empty-state {
+            color: #636e72;
+        }
+
+        body.light-mode .playlist {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
         @keyframes gradientShift {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
@@ -688,6 +726,114 @@ const INDEX_HTML = `<!DOCTYPE html>
             overflow: auto;
         }
 
+        .settings-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 200;
+        }
+
+        .settings-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .settings-dropdown {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: rgba(26, 26, 46, 0.95);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: none;
+            z-index: 200;
+            min-width: 200px;
+        }
+
+        body.light-mode .settings-dropdown {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .settings-dropdown.show {
+            display: block;
+        }
+
+        .theme-toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .theme-toggle-label {
+            color: #f5f5f5;
+            font-weight: 600;
+        }
+
+        body.light-mode .theme-toggle-label {
+            color: #2d3436;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #667eea;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
         @media (max-width: 600px) {
             .container {
                 padding: 10px;
@@ -710,6 +856,18 @@ const INDEX_HTML = `<!DOCTYPE html>
     </style>
 </head>
 <body>
+    <button id="settingsBtn" class="settings-button" title="Settings">⚙️</button>
+    
+    <div id="settingsDropdown" class="settings-dropdown">
+        <div class="theme-toggle-container">
+            <span class="theme-toggle-label">Dark Mode</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="themeToggle" checked>
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+    </div>
+    
     <div class="container">
         <header>
             <h1>🎵 Listify</h1>
@@ -779,6 +937,9 @@ const playlistHandle = document.getElementById('playlistHandle');
 const playlistHandleBar = document.getElementById('playlistHandleBar');
 const playlistModal = document.getElementById('playlistModal');
 const closeModal = document.getElementById('closeModal');
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsDropdown = document.getElementById('settingsDropdown');
+const themeToggle = document.getElementById('themeToggle');
 const statusEl = document.getElementById('status');
 const resultEl = document.getElementById('result');
 const playlistEl = document.getElementById('playlist');
@@ -1052,6 +1213,10 @@ window.onclick = (event) => {
   if (event.target === playlistModal) {
     playlistModal.style.display = 'none';
   }
+  // Close settings dropdown when clicking outside
+  if (!event.target.closest('.settings-button') && !event.target.closest('.settings-dropdown')) {
+    settingsDropdown.classList.remove('show');
+  }
 };
 
 // Main button functionality
@@ -1067,6 +1232,27 @@ exportBtn.onclick = exportToSpotify;
 
 // Initialize button icon
 btn.querySelector('.button-icon').textContent = '▶';
+
+// Settings functionality
+settingsBtn.onclick = () => {
+  settingsDropdown.classList.toggle('show');
+};
+
+// Theme toggle functionality
+themeToggle.onchange = () => {
+  const isDark = themeToggle.checked;
+  document.body.classList.toggle('light-mode', !isDark);
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+};
+
+// Load saved theme preference on page load
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'light') {
+  document.body.classList.add('light-mode');
+  themeToggle.checked = false;
+} else {
+  themeToggle.checked = true;
+}
 </script>
 </body>
 </html>`;
