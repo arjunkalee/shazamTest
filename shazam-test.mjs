@@ -877,7 +877,6 @@ const INDEX_HTML = `<!DOCTYPE html>
     <div class="container">
         <header>
             <h1>🎵 Listify</h1>
-            <p>Click "Start" to begin continuous listening. It will check every 5 seconds for different songs.</p>
         </header>
 
         <main>
