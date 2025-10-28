@@ -750,12 +750,12 @@ const INDEX_HTML = `<!DOCTYPE html>
                         <button id="closeModal" class="close-btn">&times;</button>
                     </div>
                     <div class="modal-body">
-                <div id="playlist" class="playlist">
-                    <div class="empty-state">
-                        <p>No songs in playlist yet. Start listening to build your playlist.</p>
+                        <div id="playlist" class="playlist">
+                            <div class="empty-state">
+                                <p>No songs in playlist yet. Start listening to build your playlist.</p>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
                     <div class="modal-footer">
                         <button id="exportBtn" class="export-btn" disabled>
                             <span class="btn-icon">🎵</span>
@@ -777,7 +777,6 @@ const closeModal = document.getElementById('closeModal');
 const statusEl = document.getElementById('status');
 const resultEl = document.getElementById('result');
 const playlistEl = document.getElementById('playlist');
-const playlistCountEl = document.getElementById('playlistCount');
 
 let isListening = false;
 let currentSong = null;
@@ -868,8 +867,6 @@ function addToPlaylist(songData) {
 }
 
 function updatePlaylistDisplay() {
-  playlistCountEl.textContent = playlist.length;
-  
   // Enable/disable buttons based on playlist content
   playlistHandle.style.opacity = playlist.length === 0 ? '0.5' : '1';
   playlistHandle.style.pointerEvents = playlist.length === 0 ? 'none' : 'all';
