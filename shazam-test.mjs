@@ -91,7 +91,6 @@ const INDEX_HTML = `<!DOCTYPE html>
 
         main {
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
             border-radius: 24px;
             padding: 40px;
             box-shadow: 0 25px 50px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.2);
@@ -253,7 +252,6 @@ const INDEX_HTML = `<!DOCTYPE html>
             display: inline-block;
             border: 1px solid rgba(255,255,255,0.3);
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            backdrop-filter: blur(10px);
         }
 
         .status.listening {
@@ -419,7 +417,6 @@ const INDEX_HTML = `<!DOCTYPE html>
             max-height: 400px;
             overflow-y: auto;
             background: rgba(255, 255, 255, 0.5);
-            backdrop-filter: blur(10px);
         }
 
         .playlist::-webkit-scrollbar {
@@ -556,7 +553,6 @@ const INDEX_HTML = `<!DOCTYPE html>
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(5px);
         }
 
         .modal-content {
@@ -565,7 +561,6 @@ const INDEX_HTML = `<!DOCTYPE html>
             left: 0;
             right: 0;
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
             border-radius: 24px 24px 0 0;
             padding: 0;
             max-height: 80vh;
