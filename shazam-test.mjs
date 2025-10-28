@@ -512,8 +512,11 @@ const INDEX_HTML = `<!DOCTYPE html>
 
         .playlist-handle-container {
             width: 100%;
-            margin-top: 30px;
+            margin-top: 40px;
+            margin-bottom: 20px;
             pointer-events: none;
+            display: flex;
+            justify-content: center;
         }
 
         .playlist-handle {
@@ -727,13 +730,13 @@ const INDEX_HTML = `<!DOCTYPE html>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Playlist Handle -->
-                <div class="playlist-handle-container" id="playlistHandle">
-                    <div class="playlist-handle" id="playlistHandleBar">
-                        <div class="handle-indicator"></div>
-                        <span style="color: white; font-weight: 600;">View Playlist</span>
-                    </div>
+            <!-- Playlist Handle -->
+            <div class="playlist-handle-container" id="playlistHandle">
+                <div class="playlist-handle" id="playlistHandleBar">
+                    <div class="handle-indicator"></div>
+                    <span style="color: white; font-weight: 600;">View Playlist</span>
                 </div>
             </div>
 
