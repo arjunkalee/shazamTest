@@ -35,9 +35,12 @@ main{background:rgba(26,26,46,.92);border-radius:24px 24px 0 0;padding:40px;box-
 .song-item img{width:56px;height:56px;border-radius:10px}
 .playlist{margin-top:10px;border:2px dashed rgba(255,255,255,.15);border-radius:14px;padding:14px;max-height:320px;overflow:auto}
 .playlist-item{display:flex;gap:12px;align-items:center;background:rgba(255,255,255,.05);border-radius:10px;padding:10px;margin-bottom:10px;border-left:4px solid #667eea}
-.export{width:100%;padding:14px;border-radius:999px;border:none;background:#1db954;color:#fff;cursor:pointer;font-weight:700;margin-top:14px}
-.hstack{display:flex;justify-content:center}
+.export{width:100%;padding:14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:#0f0f14;color:#fff;cursor:pointer;font-weight:700;margin-top:14px}
+.hstack{display:none;justify-content:center}
+/* Light mode variants (if body.light-mode is toggled elsewhere) */
+body.light-mode .export{background:#ffffff;color:#333;border:1px solid rgba(0,0,0,.15)}
 .playlist-modal{position:fixed;top:0;left:0;width:100%;height:100vh;background:#1a1a2e;z-index:1000;transform:translateY(100%);transition:transform 0.3s ease;padding:20px;overflow-y:auto}
+.light-mode .playlist-modal{background:#ffffff;color:#333}
 .playlist-modal.show{transform:translateY(0)}
 .playlist-modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,.1)}
 .playlist-modal-header h2{font-size:1.8rem}
