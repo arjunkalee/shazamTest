@@ -39,6 +39,19 @@ main{background:rgba(26,26,46,.92);border-radius:24px 24px 0 0;padding:40px;box-
 .hstack{display:none;justify-content:center}
 /* Light mode variants (if body.light-mode is toggled elsewhere) */
 body.light-mode .export{background:#ffffff;color:#333;border:1px solid rgba(0,0,0,.15)}
+/* Settings button and dropdown */
+.settings-button{position:fixed;top:16px;right:16px;width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1100}
+.settings-button:hover{background:rgba(255,255,255,.15)}
+.settings-dropdown{position:fixed;top:72px;right:16px;min-width:220px;background:#1a1a2e;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:14px;display:none;z-index:1100}
+.settings-dropdown.show{display:block}
+.light-mode .settings-dropdown{background:#ffffff;border:1px solid rgba(0,0,0,.15);color:#333}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.toggle{position:relative;width:54px;height:30px}
+.toggle input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#888;border-radius:999px;transition:.3s}
+.slider:before{content:"";position:absolute;height:24px;width:24px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s}
+.toggle input:checked + .slider{background:#667eea}
+.toggle input:checked + .slider:before{transform:translateX(24px)}
 .playlist-modal{position:fixed;top:0;left:0;right:0;bottom:0;z-index:1000;background:transparent;pointer-events:none}
 .playlist-modal.show{pointer-events:auto}
 .playlist-modal-content{position:absolute;left:0;right:0;bottom:0;background:#1a1a2e;border-radius:20px 20px 0 0;padding:20px;max-height:80vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s ease}
@@ -49,6 +62,16 @@ body.light-mode .export{background:#ffffff;color:#333;border:1px solid rgba(0,0,
 .close-btn{background:none;border:none;font-size:2.5rem;color:#fff;cursor:pointer;line-height:1}
 .playlist-modal-content{max-width:800px;margin:0 auto}
 </style></head><body>
+<button id="settingsBtn" class="settings-button" title="Settings">⚙️</button>
+<div id="settingsDropdown" class="settings-dropdown">
+  <div class="row"><span>Dark Mode</span>
+    <label class="toggle">
+      <input id="themeToggle" type="checkbox" checked>
+      <span class="slider"></span>
+    </label>
+  </div>
+  <div style="margin-top:10px;font-size:.85rem;opacity:.8">Your preference is saved.</div>
+</div>
 <div class="container">
 <header><h1>🎵 Listify</h1><p>Recognize music around you and export a Spotify playlist.</p></header>
 <main>
@@ -77,6 +100,9 @@ const exportBtn = document.getElementById('exportBtn');
 const openPlaylistBtn = document.getElementById('openPlaylistBtn');
 const playlistModal = document.getElementById('playlistModal');
 const closeModal = document.getElementById('closeModal');
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsDropdown = document.getElementById('settingsDropdown');
+const themeToggle = document.getElementById('themeToggle');
 
 let listening = false;
 let last = null;
@@ -153,6 +179,31 @@ openPlaylistBtn.onclick = ()=>{
 
 closeModal.onclick = ()=>{
   playlistModal.classList.remove('show');
+};
+
+// Settings dropdown
+settingsBtn.onclick = (e)=>{
+  e.stopPropagation();
+  settingsDropdown.classList.toggle('show');
+};
+document.addEventListener('click',(e)=>{
+  if(!e.target.closest('#settingsDropdown') && !e.target.closest('#settingsBtn')){
+    settingsDropdown.classList.remove('show');
+  }
+});
+
+// Theme toggle with persistence
+const savedTheme = localStorage.getItem('theme');
+if(savedTheme === 'light'){
+  document.body.classList.add('light-mode');
+  themeToggle.checked = false;
+} else {
+  themeToggle.checked = true;
+}
+themeToggle.onchange = ()=>{
+  const dark = themeToggle.checked;
+  document.body.classList.toggle('light-mode', !dark);
+  localStorage.setItem('theme', dark ? 'dark' : 'light');
 };
 
 exportBtn.onclick = async ()=>{
