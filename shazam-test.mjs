@@ -1,28 +1,49 @@
 // shazam-test.mjs
 // Node 18+
-// Env:
-// RAPIDAPI_KEY=... SPOTIFY_CLIENT_ID=... SPOTIFY_CLIENT_SECRET=... SPOTIFY_REDIRECT_URI=http://localhost:3001/spotify/callback
-// node shazam-test.mjs
+// Env (Vercel Project Settings -> Environment Variables):
+// RAPIDAPI_KEY=... 
+// SPOTIFY_CLIENT_ID=...
+// SPOTIFY_CLIENT_SECRET=...
+// SPOTIFY_REDIRECT_URI=https://YOUR-VERCEL-DOMAIN/spotify/callback
+//
+// Deployed on Vercel as a serverless function (export default app).
 
 import express from "express";
 import multer from "multer";
+import { randomBytes } from "crypto";
 
+// ----------- Config ----------
 const RAPIDAPI_KEY_FALLBACK = "afbad03ef5msh0cbf5447fa19661p1fb2ffjsn226d2ca11fb1";
 const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY || RAPIDAPI_KEY_FALLBACK;
 const API_HOST = "shazam-song-recognition-api.p.rapidapi.com";
 
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID || "";
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET || "";
-const SPOTIFY_REDIRECT_URI = process.env.SPOTIFY_REDIRECT_URI || "http://localhost:3001/spotify/callback";
+const SPOTIFY_REDIRECT_URI =
+  process.env.SPOTIFY_REDIRECT_URI || "http://localhost:3001/spotify/callback";
 
+// Lock to a single Spotify account (set "" to allow any user)
 const TARGET_USER_ID = "forzadaboss2004";
 
+// ---------- App ----------
 const app = express();
 const upload = multer();
 const PORT = process.env.PORT || 3001;
 
 app.use(express.json());
 
+// ---------- Cookie helpers (serverless-safe state) ----------
+function setCookie(res, name, value, { maxAgeSec = 600 } = {}) {
+  const cookie = `${name}=${encodeURIComponent(value)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAgeSec}`;
+  res.setHeader("Set-Cookie", cookie);
+}
+function getCookie(req, name) {
+  const h = req.headers.cookie || "";
+  const m = h.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return m ? decodeURIComponent(m[1]) : null;
+}
+
+// ---------- UI ----------
 const INDEX_HTML = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Listify - Music Recognition</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:Inter,Segoe UI,-apple-system,BlinkMacSystemFont,sans-serif;background:#1a1a2e;min-height:100vh;color:#f5f5f5}
@@ -37,9 +58,7 @@ main{background:rgba(26,26,46,.92);border-radius:24px 24px 0 0;padding:40px;box-
 .playlist-item{display:flex;gap:12px;align-items:center;background:rgba(255,255,255,.05);border-radius:10px;padding:10px;margin-bottom:10px;border-left:4px solid #667eea}
 .export{width:100%;padding:14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:#0f0f14;color:#fff;cursor:pointer;font-weight:700;margin-top:14px}
 .hstack{display:none;justify-content:center}
-/* Light mode variants (if body.light-mode is toggled elsewhere) */
 body.light-mode .export{background:#ffffff;color:#333;border:1px solid rgba(0,0,0,.15)}
-/* Settings button and dropdown */
 .settings-button{position:fixed;top:16px;right:16px;width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1100}
 .settings-button:hover{background:rgba(255,255,255,.15)}
 .settings-dropdown{position:fixed;top:72px;right:16px;min-width:220px;background:#1a1a2e;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:14px;display:none;z-index:1100}
@@ -106,7 +125,11 @@ const themeToggle = document.getElementById('themeToggle');
 
 let listening = false;
 let last = null;
-let list = [];
+let list = [
+  { key: 'Blinding Lights|The Weeknd', title: 'Blinding Lights', artist: 'The Weeknd', cover: null },
+  { key: 'Shape of You|Ed Sheeran', title: 'Shape of You', artist: 'Ed Sheeran', cover: null },
+  { key: 'Someone Like You|Adele', title: 'Someone Like You', artist: 'Adele', cover: null }
+];
 
 async function record(ms=8000){
   const stream = await navigator.mediaDevices.getUserMedia({audio:true});
@@ -132,16 +155,20 @@ function renderSong(d){
     '<div><div style="font-weight:700">'+title+'</div><div style="opacity:.7">'+artist+'</div></div></div>';
 }
 
+function updatePlaylistDisplay(){
+  exportBtn.disabled = list.length===0;
+  openPlaylistBtn.disabled = list.length===0;
+  playlistEl.innerHTML = list.map((s)=>
+    '<div class="playlist-item"><div style="font-weight:700">'+s.title+'</div><div style="opacity:.7">'+s.artist+'</div></div>'
+  ).join('');
+}
+
 function addToList(d){
   const t = d?.track; if(!t) return;
   const key = (t.title||'')+'|'+(t.subtitle||'');
   if(list.find(x=>x.key===key)) return;
   list.unshift({ key, title:t.title||'Unknown', artist:t.subtitle||'Unknown', cover: t?.images?.coverart||null });
-  exportBtn.disabled = list.length===0;
-  openPlaylistBtn.disabled = list.length===0;
-  playlistEl.innerHTML = list.map((s,i)=>(
-    '<div class="playlist-item"><div style="font-weight:700">'+s.title+'</div><div style="opacity:.7">'+s.artist+'</div></div>'
-  )).join('');
+  updatePlaylistDisplay();
 }
 
 async function recognizeOnce(){
@@ -165,7 +192,6 @@ btn.onclick = ()=>{
   listening = !listening;
   btn.textContent = listening ? '⏸' : '▶';
   if(listening){
-    list = []; playlistEl.innerHTML=''; exportBtn.disabled=true; openPlaylistBtn.disabled=true;
     recognizeOnce();
     loop = setInterval(recognizeOnce, 5000);
   } else {
@@ -173,38 +199,17 @@ btn.onclick = ()=>{
   }
 };
 
-openPlaylistBtn.onclick = ()=>{
-  playlistModal.classList.add('show');
-};
-
-closeModal.onclick = ()=>{
-  playlistModal.classList.remove('show');
-};
+openPlaylistBtn.onclick = ()=>{ playlistModal.classList.add('show'); };
+closeModal.onclick = ()=>{ playlistModal.classList.remove('show'); };
 
 // Settings dropdown
-settingsBtn.onclick = (e)=>{
-  e.stopPropagation();
-  settingsDropdown.classList.toggle('show');
-};
-document.addEventListener('click',(e)=>{
-  if(!e.target.closest('#settingsDropdown') && !e.target.closest('#settingsBtn')){
-    settingsDropdown.classList.remove('show');
-  }
-});
+settingsBtn.onclick = (e)=>{ e.stopPropagation(); settingsDropdown.classList.toggle('show'); };
+document.addEventListener('click',(e)=>{ if(!e.target.closest('#settingsDropdown') && !e.target.closest('#settingsBtn')) settingsDropdown.classList.remove('show'); });
 
 // Theme toggle with persistence
 const savedTheme = localStorage.getItem('theme');
-if(savedTheme === 'light'){
-  document.body.classList.add('light-mode');
-  themeToggle.checked = false;
-} else {
-  themeToggle.checked = true;
-}
-themeToggle.onchange = ()=>{
-  const dark = themeToggle.checked;
-  document.body.classList.toggle('light-mode', !dark);
-  localStorage.setItem('theme', dark ? 'dark' : 'light');
-};
+if(savedTheme === 'light'){ document.body.classList.add('light-mode'); themeToggle.checked = false; } else { themeToggle.checked = true; }
+themeToggle.onchange = ()=>{ const dark = themeToggle.checked; document.body.classList.toggle('light-mode', !dark); localStorage.setItem('theme', dark ? 'dark' : 'light'); };
 
 exportBtn.onclick = async ()=>{
   const payload = { playlist: list.map(({title,artist})=>({title,artist})), playlistName: 'Shazam Playlist - '+new Date().toLocaleDateString() };
@@ -214,8 +219,13 @@ exportBtn.onclick = async ()=>{
   else if(j.success){ alert('Export prepared. Open the manual export page.'); window.open('/export/'+encodeURIComponent(j.playlistName)+'?data='+encodeURIComponent(JSON.stringify(j.songs)),'_blank'); }
   else { alert('Export failed: '+(j.error||'Unknown error')); }
 };
+
+// Initialize playlist display on page load
+updatePlaylistDisplay();
 </script>
 </body></html>`;
+
+// ---------- Routes ----------
 
 // Home
 app.get("/", (req, res) => res.type("html").send(INDEX_HTML));
@@ -246,11 +256,56 @@ app.post("/api/recognize", upload.single("file"), async (req, res) => {
   }
 });
 
-// Start OAuth – request scopes and force account chooser
+// Prepare export – prefer OAuth when Spotify env present; store payload in cookie
+app.post("/api/export-spotify", async (req, res) => {
+  try {
+    const { playlist, playlistName } = req.body || {};
+    if (!Array.isArray(playlist) || !playlist.length) {
+      return res.status(400).json({ error: "No playlist data provided" });
+    }
+
+    if (!SPOTIFY_CLIENT_ID || !SPOTIFY_CLIENT_SECRET || !SPOTIFY_REDIRECT_URI) {
+      // Fallback: manual export page
+      return res.json({
+        success: true,
+        hasOAuth: false,
+        playlistName,
+        songsCount: playlist.length,
+        songs: playlist.map(s => ({
+          title: s.title,
+          artist: s.artist,
+          spotifySearchUrl: `https://open.spotify.com/search/${encodeURIComponent(`${s.title} ${s.artist}`)}`
+        }))
+      });
+    }
+
+    // NEW: short state token + HttpOnly cookie with payload (10 min)
+    const stateKey = randomBytes(16).toString("hex");
+    const payload = {
+      name: playlistName,
+      songs: playlist.map(s => ({ title: s.title, artist: s.artist }))
+    };
+    setCookie(res, "listify_payload", JSON.stringify({ stateKey, payload }), { maxAgeSec: 600 });
+
+    return res.json({
+      success: true,
+      hasOAuth: true,
+      authUrl: `/spotify/login?state=${stateKey}`,
+      playlistName,
+      songsCount: playlist.length
+    });
+  } catch (e) {
+    console.error("Export error:", e);
+    res.status(500).json({ error: "Export failed" });
+  }
+});
+
+// Start OAuth – forward short state
 app.get("/spotify/login", (req, res) => {
   if (!SPOTIFY_CLIENT_ID) {
     return res.status(400).json({ error: "Spotify not configured (missing SPOTIFY_CLIENT_ID)" });
   }
+  const state = typeof req.query.state === "string" ? req.query.state : "";
   const scope = "playlist-modify-public playlist-modify-private";
   const authUrl =
     "https://accounts.spotify.com/authorize?" +
@@ -259,16 +314,23 @@ app.get("/spotify/login", (req, res) => {
     `redirect_uri=${encodeURIComponent(SPOTIFY_REDIRECT_URI)}&` +
     `scope=${encodeURIComponent(scope)}&` +
     "show_dialog=true&" +
-    `state=${req.query.state || ""}`;
+    `state=${encodeURIComponent(state)}`;
   res.redirect(authUrl);
 });
 
-// OAuth callback – verify user, create playlist, add tracks
+// OAuth callback – verify state, create playlist, add tracks, redirect to Spotify
 app.get("/spotify/callback", async (req, res) => {
   try {
     const { code, state } = req.query;
-    if (!code) return res.send("Authorization failed.");
+    if (!code) return res.status(400).send("Authorization failed.");
 
+    // Validate state from cookie
+    const cookieJson = getCookie(req, "listify_payload");
+    if (!cookieJson) throw new Error("Missing playlist cookie (expired). Try export again.");
+    const { stateKey, payload } = JSON.parse(cookieJson);
+    if (!state || state !== stateKey) throw new Error("State mismatch.");
+
+    // Exchange code for token
     const tokenResponse = await fetch("https://accounts.spotify.com/api/token", {
       method: "POST",
       headers: {
@@ -281,12 +343,14 @@ app.get("/spotify/callback", async (req, res) => {
     const accessToken = tokenData.access_token;
     if (!accessToken) throw new Error("Failed to get access token");
 
+    // Identify user
     const meRes = await fetch("https://api.spotify.com/v1/me", {
       headers: { Authorization: `Bearer ${accessToken}` }
     });
     const me = await meRes.json();
     if (!me?.id) throw new Error("Could not read profile");
 
+    // Optional account lock
     if (TARGET_USER_ID && me.id !== TARGET_USER_ID) {
       const back = state ? `?state=${encodeURIComponent(state)}` : "";
       return res.send(`
@@ -298,20 +362,22 @@ app.get("/spotify/callback", async (req, res) => {
       `);
     }
 
-    const payload = state ? JSON.parse(decodeURIComponent(state)) : null;
     const playlistName = payload?.name || `Listify ${new Date().toLocaleDateString()}`;
-    const songs = payload?.songs || [];
+    const songs = Array.isArray(payload?.songs) ? payload.songs : [];
 
-    // Create playlist explicitly for this user
-    const createResponse = await fetch(`https://api.spotify.com/v1/users/${encodeURIComponent(me.id)}/playlists`, {
+    // Create playlist under this user
+    const createResponse = await fetch(`https://api.spotify.com/v1/me/playlists`, {
       method: "POST",
       headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
       body: JSON.stringify({ name: playlistName, description: "Created from Listify", public: false })
     });
     const playlist = await createResponse.json();
     const playlistId = playlist.id;
+    if (!playlistId) {
+      throw new Error("Failed to create playlist: " + (playlist?.error?.message || JSON.stringify(playlist)));
+    }
 
-    // Resolve tracks
+    // Resolve tracks -> URIs
     const uris = [];
     for (const s of songs) {
       try {
@@ -325,79 +391,27 @@ app.get("/spotify/callback", async (req, res) => {
       } catch {}
     }
 
-    if (uris.length) {
+    // Add tracks in chunks of 100
+    for (let i = 0; i < uris.length; i += 100) {
+      const chunk = uris.slice(i, i + 100);
       await fetch(`https://api.spotify.com/v1/playlists/${encodeURIComponent(playlistId)}/tracks`, {
         method: "POST",
         headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ uris })
+        body: JSON.stringify({ uris: chunk })
       });
     }
 
-    res.send(`
-      <html>
-        <head><title>Playlist Created</title>
-        <style>body{font-family:Arial;background:#191414;color:#fff;padding:40px;text-align:center}
-        .box{background:#1db954;padding:24px;border-radius:10px;display:inline-block}
-        a.btn{display:inline-block;margin-top:16px;background:#fff;color:#191414;padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:700}
-        </style></head>
-        <body>
-          <div class="box">
-            <h2>✅ Playlist Created</h2>
-            <p>"${playlistName}" added to ${me.display_name || me.id}.</p>
-            <a class="btn" target="_blank" href="${playlist?.external_urls?.spotify || `https://open.spotify.com/user/${me.id}`}">Open in Spotify</a>
-          </div>
-        </body>
-      </html>
-    `);
+    // Redirect user straight to the playlist (web)
+    const webUrl = playlist?.external_urls?.spotify || `https://open.spotify.com/playlist/${playlistId}`;
+    return res.redirect(302, webUrl);
+
   } catch (e) {
     console.error("OAuth error:", e);
     res.status(500).send("Error: " + e.message);
   }
 });
 
-// Prepare export – either OAuth (preferred) or manual page
-app.post("/api/export-spotify", async (req, res) => {
-  try {
-    const { playlist, playlistName } = req.body || {};
-    if (!Array.isArray(playlist) || !playlist.length) {
-      return res.status(400).json({ error: "No playlist data provided" });
-    }
-    if (!SPOTIFY_CLIENT_ID) {
-      return res.json({
-        success: true,
-        hasOAuth: false,
-        playlistName,
-        songsCount: playlist.length,
-        songs: playlist.map(s => ({
-          title: s.title,
-          artist: s.artist,
-          spotifySearchUrl: `https://open.spotify.com/search/${encodeURIComponent(`${s.title} ${s.artist}`)}`
-        }))
-      });
-    }
-    const state = encodeURIComponent(JSON.stringify({
-      name: playlistName,
-      songs: playlist.map(s => ({ title: s.title, artist: s.artist }))
-    }));
-    return res.json({
-      success: true,
-      hasOAuth: true,
-      authUrl: `/spotify/login?state=${state}`,
-      playlistName,
-      songsCount: playlist.length,
-      songs: playlist.map(s => ({
-        title: s.title,
-        artist: s.artist,
-        spotifySearchUrl: `https://open.spotify.com/search/${encodeURIComponent(`${s.title} ${s.artist}`)}`
-      }))
-    });
-  } catch (e) {
-    console.error("Export error:", e);
-    res.status(500).json({ error: "Export failed" });
-  }
-});
-
-// Manual export helper
+// Manual export helper (fallback)
 app.get("/export/:playlistName", (req, res) => {
   const n = req.params.playlistName;
   const exportHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${n}</title>
@@ -406,7 +420,7 @@ app.get("/export/:playlistName", (req, res) => {
   <h2>Spotify Export – ${n}</h2><div id="list">Loading…</div>
   <script>
   const p=new URLSearchParams(location.search).get('data');let s=[];try{s=JSON.parse(decodeURIComponent(p)||'[]')}catch{}
-  document.getElementById('list').innerHTML=s.map(x=>'<div class="item"><div><b>'+x.title+'</b><div style="opacity:.7">'+x.artist+'</div></div><a target="_blank" href="'+x.spotifySearchUrl+'">Search</a></div>').join('');
+  document.getElementById('list').innerHTML=s.map(x=>'<div class="item"><div><b>'+x.title+'</b><div style="opacity:.7">'+x.artist+'</div></div><a target="_blank" href="https://open.spotify.com/search/'+encodeURIComponent(x.title+' '+x.artist)+'">Search</a></div>').join('');
   </script></body></html>`;
   res.type("html").send(exportHtml);
 });
@@ -414,7 +428,7 @@ app.get("/export/:playlistName", (req, res) => {
 // Vercel default export
 export default app;
 
-// Local dev server
+// Local dev server (optional)
 if (process.env.NODE_ENV !== "production") {
   app.listen(PORT, () => {
     console.log(`\nShazam test running on http://localhost:${PORT}`);
