@@ -20,7 +20,7 @@ const API_HOST = "shazam-song-recognition-api.p.rapidapi.com";
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID || "";
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET || "";
 const SPOTIFY_REDIRECT_URI =
-  process.env.SPOTIFY_REDIRECT_URI || "http://localhost:3001/spotify/callback";
+  process.env.SPOTIFY_REDIRECT_URI || "https://shazam-test.vercel.app/";
 
 // Lock to a single Spotify account (set "" to allow any user)
 const TARGET_USER_ID = "forzadaboss2004";
@@ -431,7 +431,7 @@ export default app;
 // Local dev server (optional)
 if (process.env.NODE_ENV !== "production") {
   app.listen(PORT, () => {
-    console.log(`\nShazam test running on http://localhost:${PORT}`);
+    console.log(`\nShazam test running on https://shazam-test.vercel.app/`);
     console.log(`Redirect URI: ${SPOTIFY_REDIRECT_URI}`);
   });
 }
