@@ -125,11 +125,7 @@ const themeToggle = document.getElementById('themeToggle');
 
 let listening = false;
 let last = null;
-let list = [
-  { key: 'Blinding Lights|The Weeknd', title: 'Blinding Lights', artist: 'The Weeknd', cover: null },
-  { key: 'Shape of You|Ed Sheeran', title: 'Shape of You', artist: 'Ed Sheeran', cover: null },
-  { key: 'Someone Like You|Adele', title: 'Someone Like You', artist: 'Adele', cover: null }
-];
+let list = [];
 
 async function record(ms=8000){
   const stream = await navigator.mediaDevices.getUserMedia({audio:true});
@@ -212,7 +208,7 @@ if(savedTheme === 'light'){ document.body.classList.add('light-mode'); themeTogg
 themeToggle.onchange = ()=>{ const dark = themeToggle.checked; document.body.classList.toggle('light-mode', !dark); localStorage.setItem('theme', dark ? 'dark' : 'light'); };
 
 exportBtn.onclick = async ()=>{
-  const payload = { playlist: list.map(({title,artist})=>({title,artist})), playlistName: 'Shazam Playlist - '+new Date().toLocaleDateString() };
+  const payload = { playlist: list.map(({title,artist})=>({title,artist})), playlistName: 'Listify playlist - '+new Date().toLocaleDateString() };
   const r = await fetch('/api/export-spotify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
   const j = await r.json();
   if(j.success && j.hasOAuth && j.authUrl){ window.location.href = j.authUrl; }
