@@ -81,16 +81,16 @@ body.light-mode .export{background:#ffffff;color:#333;border:1px solid rgba(0,0,
 .close-btn{background:none;border:none;font-size:2.5rem;color:#fff;cursor:pointer;line-height:1}
 .playlist-modal-content{max-width:800px;margin:0 auto}
 </style></head><body>
-        <button id="settingsBtn" class="settings-button" title="Settings">⚙️</button>
+<button id="settingsBtn" class="settings-button" title="Settings">⚙️</button>
 <div id="settingsDropdown" class="settings-dropdown">
   <div class="row"><span>Dark Mode</span>
     <label class="toggle">
       <input id="themeToggle" type="checkbox" checked>
       <span class="slider"></span>
     </label>
-            </div>
+  </div>
   <div style="margin-top:10px;font-size:.85rem;opacity:.8">Your preference is saved.</div>
-            </div>
+</div>
 <div class="container">
 <header><h1>🎵 Listify</h1><p>Recognize music around you and export a Spotify playlist.</p></header>
 <main>
@@ -99,17 +99,17 @@ body.light-mode .export{background:#ffffff;color:#333;border:1px solid rgba(0,0,
   <div id="result"></div>
   <button id="openPlaylistBtn" class="export" disabled>View Playlist</button>
 </main>
-                    </div>
+</div>
 <div class="playlist-modal" id="playlistModal">
 <div class="playlist-modal-content">
 <div class="playlist-modal-header">
 <h2>Your Playlist</h2>
 <button class="close-btn" id="closeModal">&times;</button>
-                </div>
+</div>
 <div id="playlist" class="playlist"></div>
 <button id="exportBtn" class="export" disabled>Export to Spotify</button>
-                </div>
-            </div>
+</div>
+</div>
 <script>
 const btn = document.getElementById('btn');
 const statusEl = document.getElementById('status');
@@ -164,12 +164,12 @@ function addToList(d){
   const key = (t.title||'')+'|'+(t.subtitle||'');
   if(list.find(x=>x.key===key)) return;
   list.unshift({ key, title:t.title||'Unknown', artist:t.subtitle||'Unknown', cover: t?.images?.coverart||null });
-    updatePlaylistDisplay();
+  updatePlaylistDisplay();
 }
 
 async function recognizeOnce(){
   statusEl.textContent='Listening ~8s...';
-    const blob = await record(8000);
+  const blob = await record(8000);
   statusEl.textContent='Recognizing...';
   const form = new FormData(); form.append('file', blob, 'clip.webm');
   const res = await fetch('/api/recognize',{method:'POST',body:form});
@@ -178,7 +178,7 @@ async function recognizeOnce(){
     const curr = (json.track.title||'')+'|'+(json.track.subtitle||'');
     if(curr !== last){ last = curr; renderSong(json); addToList(json); statusEl.textContent='Found: '+json.track.title; }
     else { statusEl.textContent='Same song, continuing...'; }
-    } else {
+  } else {
     statusEl.textContent='No match.';
   }
 }
@@ -190,7 +190,7 @@ btn.onclick = ()=>{
   if(listening){
     recognizeOnce();
     loop = setInterval(recognizeOnce, 5000);
-    } else {
+  } else {
     clearInterval(loop); loop=null; statusEl.textContent = 'Stopped.';
   }
 };
@@ -263,10 +263,10 @@ app.post("/api/export-spotify", async (req, res) => {
     if (!SPOTIFY_CLIENT_ID || !SPOTIFY_CLIENT_SECRET || !SPOTIFY_REDIRECT_URI) {
       // Fallback: manual export page
       return res.json({
-      success: true,
+        success: true,
         hasOAuth: false,
         playlistName,
-      songsCount: playlist.length,
+        songsCount: playlist.length,
         songs: playlist.map(s => ({
           title: s.title,
           artist: s.artist,
@@ -373,55 +373,65 @@ app.get("/spotify/callback", async (req, res) => {
       throw new Error("Failed to create playlist: " + (playlist?.error?.message || JSON.stringify(playlist)));
     }
 
-    // Resolve tracks -> URIs with resilient multi-try search
-    async function findTrackUri(title, artist) {
-      const clean = (str) => (str || "")
-        .replace(/[\u2018\u2019]/g, "'")
-        .replace(/[\u201C\u201D]/g, '"')
-        .replace(/\s+feat\..*$/i, "")
-        .replace(/\s*\(.*?\)\s*/g, " ")
-        .replace(/\s*\[.*?\]\s*/g, " ")
-        .trim();
-
-      const t = clean(title);
-      const a = clean(artist);
-
-      const queries = [
-        `track:${t} artist:${a}`,
-        `${t} ${a}`,
-        `"${t}" "${a}"`,
-        `track:"${t}" artist:"${a}"`
-      ];
-
-      for (const q of queries) {
-        try {
-          const sr = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=1`, {
+    // Resolve tracks -> URIs
+    const uris = [];
+    const found = [];
+    const notFound = [];
+    
+    for (const s of songs) {
+      try {
+        // Try exact match first
+        let q = `${s.title} artist:${s.artist}`;
+        let sr = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=5`, {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        let sd = await sr.json();
+        let item = sd?.tracks?.items?.[0];
+        
+        // If no exact match, try title only
+        if (!item && s.title) {
+          q = s.title;
+          sr = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=5`, {
             headers: { Authorization: `Bearer ${accessToken}` }
           });
-          const sd = await sr.json();
-          const item = sd?.tracks?.items?.[0];
-          if (item?.uri) return item.uri;
-                } catch (e) {
-          // continue
+          sd = await sr.json();
+          // Try to find match with artist in results
+          item = sd?.tracks?.items?.find(t => 
+            t.artists?.some(a => a.name?.toLowerCase().includes(s.artist?.toLowerCase() || ''))
+          ) || sd?.tracks?.items?.[0];
         }
+        
+        if (item?.uri) {
+          uris.push(item.uri);
+          found.push(s.title);
+        } else {
+          notFound.push(`${s.title} - ${s.artist}`);
+          console.log(`Track not found: ${s.title} by ${s.artist}`);
+        }
+      } catch (err) {
+        notFound.push(`${s.title} - ${s.artist}`);
+        console.error(`Error searching for ${s.title}:`, err.message);
       }
-      return null;
     }
-
-    const uris = [];
-    for (const s of songs) {
-      const uri = await findTrackUri(s.title, s.artist);
-      if (uri) uris.push(uri);
-    }
+    
+    console.log(`Found ${found.length}/${songs.length} tracks. Missing: ${notFound.join(', ')}`);
 
     // Add tracks in chunks of 100
     for (let i = 0; i < uris.length; i += 100) {
       const chunk = uris.slice(i, i + 100);
-      await fetch(`https://api.spotify.com/v1/playlists/${encodeURIComponent(playlistId)}/tracks`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ uris: chunk })
-      });
+      try {
+        const addRes = await fetch(`https://api.spotify.com/v1/playlists/${encodeURIComponent(playlistId)}/tracks`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ uris: chunk })
+        });
+        if (!addRes.ok) {
+          const error = await addRes.json();
+          console.error(`Failed to add chunk ${i}-${i+chunk.length}:`, error);
+        }
+      } catch (err) {
+        console.error(`Error adding chunk ${i}-${i+chunk.length}:`, err.message);
+      }
     }
 
     // Redirect user straight to the playlist (web)
