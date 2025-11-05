@@ -57,7 +57,7 @@ body.light-mode .main-button{background:linear-gradient(135deg,#4a5568 0%,#2d374
 .song-item img{width:56px;height:56px;border-radius:10px}
 .playlist{margin-top:10px;border:2px dashed rgba(255,255,255,.15);border-radius:14px;padding:14px;max-height:320px;overflow:auto}
 .playlist-item{display:flex;gap:12px;align-items:center;background:rgba(255,255,255,.05);border-radius:10px;padding:10px;margin-bottom:10px;border-left:4px solid #667eea}
-.export{width:100%;padding:14px;border-radius:999px;border:none;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;cursor:pointer;font-weight:700;margin-top:14px}
+.export{width:100%;padding:20px;border-radius:999px;border:none;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;cursor:pointer;font-weight:700;margin-top:40px}
 .hstack{display:none;justify-content:center}
 body.light-mode{background:#f5f5f5;color:#333}
 body.light-mode header{color:#333}
