@@ -125,7 +125,13 @@ const themeToggle = document.getElementById('themeToggle');
 
 let listening = false;
 let last = null;
-let list = [];
+let list = [
+  { key: 'Blinding Lights|The Weeknd', title: 'Blinding Lights', artist: 'The Weeknd', cover: null },
+  { key: 'Shape of You|Ed Sheeran', title: 'Shape of You', artist: 'Ed Sheeran', cover: null },
+  { key: 'Someone Like You|Adele', title: 'Someone Like You', artist: 'Adele', cover: null },
+  { key: 'Bad Guy|Billie Eilish', title: 'Bad Guy', artist: 'Billie Eilish', cover: null },
+  { key: 'As It Was|Harry Styles', title: 'As It Was', artist: 'Harry Styles', cover: null }
+];
 
 async function record(ms=8000){
   const stream = await navigator.mediaDevices.getUserMedia({audio:true});
