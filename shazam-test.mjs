@@ -51,6 +51,7 @@ const INDEX_HTML = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><
 header h1{font-size:3rem;margin-bottom:10px}
 main{background:rgba(26,26,46,.92);border-radius:24px 24px 0 0;padding:40px;box-shadow:0 25px 50px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.1);min-height:calc(100vh - 160px);display:flex;flex-direction:column}
 .main-button{width:200px;height:200px;border-radius:50%;border:none;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;margin:20px auto;font-size:5rem}
+body.light-mode .main-button{background:linear-gradient(135deg,#4a5568 0%,#2d3748 100%)}
 .status{display:inline-block;padding:10px 16px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);margin:10px 0}
 .song-item{display:flex;gap:16px;align-items:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:14px;margin-top:14px}
 .song-item img{width:56px;height:56px;border-radius:10px}
@@ -65,7 +66,7 @@ body.light-mode .status{background:rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.
 body.light-mode .song-item{background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.1)}
 body.light-mode .playlist{border:2px dashed rgba(0,0,0,.15)}
 body.light-mode .playlist-item{background:rgba(0,0,0,.04);border-left:4px solid #667eea}
-body.light-mode .export{background:#ffffff;color:#333;border:1px solid rgba(0,0,0,.15)}
+body.light-mode .export{background:#000000;color:#ffffff;border:1px solid rgba(0,0,0,.3)}
 body.light-mode .settings-button{background:rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.12);color:#333}
 body.light-mode .settings-button:hover{background:rgba(0,0,0,.1)}
 .settings-button{position:fixed;top:16px;right:16px;width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1100}
