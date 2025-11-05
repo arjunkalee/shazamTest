@@ -58,12 +58,21 @@ main{background:rgba(26,26,46,.92);border-radius:24px 24px 0 0;padding:40px;box-
 .playlist-item{display:flex;gap:12px;align-items:center;background:rgba(255,255,255,.05);border-radius:10px;padding:10px;margin-bottom:10px;border-left:4px solid #667eea}
 .export{width:100%;padding:14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:#0f0f14;color:#fff;cursor:pointer;font-weight:700;margin-top:14px}
 .hstack{display:none;justify-content:center}
+body.light-mode{background:#f5f5f5;color:#333}
+body.light-mode header{color:#333}
+body.light-mode main{background:#ffffff;box-shadow:0 25px 50px rgba(0,0,0,.1),0 0 0 1px rgba(0,0,0,.08)}
+body.light-mode .status{background:rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.12);color:#333}
+body.light-mode .song-item{background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.1)}
+body.light-mode .playlist{border:2px dashed rgba(0,0,0,.15)}
+body.light-mode .playlist-item{background:rgba(0,0,0,.04);border-left:4px solid #667eea}
 body.light-mode .export{background:#ffffff;color:#333;border:1px solid rgba(0,0,0,.15)}
+body.light-mode .settings-button{background:rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.12);color:#333}
+body.light-mode .settings-button:hover{background:rgba(0,0,0,.1)}
 .settings-button{position:fixed;top:16px;right:16px;width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1100}
 .settings-button:hover{background:rgba(255,255,255,.15)}
 .settings-dropdown{position:fixed;top:72px;right:16px;min-width:220px;background:#1a1a2e;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:14px;display:none;z-index:1100}
 .settings-dropdown.show{display:block}
-.light-mode .settings-dropdown{background:#ffffff;border:1px solid rgba(0,0,0,.15);color:#333}
+body.light-mode .settings-dropdown{background:#ffffff;border:1px solid rgba(0,0,0,.15);color:#333}
 .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .toggle{position:relative;width:54px;height:30px}
 .toggle input{opacity:0;width:0;height:0}
@@ -73,13 +82,14 @@ body.light-mode .export{background:#ffffff;color:#333;border:1px solid rgba(0,0,
 .toggle input:checked + .slider:before{transform:translateX(24px)}
 .playlist-modal{position:fixed;top:0;left:0;right:0;bottom:0;z-index:1000;background:transparent;pointer-events:none}
 .playlist-modal.show{pointer-events:auto}
-.playlist-modal-content{position:absolute;left:0;right:0;bottom:0;background:#1a1a2e;border-radius:20px 20px 0 0;padding:20px;max-height:80vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s ease}
+.playlist-modal-content{position:absolute;left:0;right:0;bottom:0;background:#1a1a2e;border-radius:20px 20px 0 0;padding:20px;max-height:80vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s ease;max-width:800px;margin:0 auto}
 .playlist-modal.show .playlist-modal-content{transform:translateY(0)}
-.light-mode .playlist-modal-content{background:#ffffff;color:#333}
+body.light-mode .playlist-modal-content{background:#ffffff;color:#333}
 .playlist-modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,.1)}
+body.light-mode .playlist-modal-header{border-bottom:1px solid rgba(0,0,0,.1)}
 .playlist-modal-header h2{font-size:1.8rem}
 .close-btn{background:none;border:none;font-size:2.5rem;color:#fff;cursor:pointer;line-height:1}
-.playlist-modal-content{max-width:800px;margin:0 auto}
+body.light-mode .close-btn{color:#333}
 </style></head><body>
 <button id="settingsBtn" class="settings-button" title="Settings">⚙️</button>
 <div id="settingsDropdown" class="settings-dropdown">
@@ -440,9 +450,33 @@ app.get("/spotify/callback", async (req, res) => {
       }
     }
 
-    // Redirect user straight to the playlist (web)
+    // Return HTML page that opens Spotify in new tab
     const webUrl = playlist?.external_urls?.spotify || `https://open.spotify.com/playlist/${playlistId}`;
-    return res.redirect(302, webUrl);
+    return res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Playlist Created</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 40px; text-align: center; background: #1a1a2e; color: #fff; }
+          .success { background: rgba(29, 185, 84, 0.2); border: 2px solid #1db954; border-radius: 12px; padding: 24px; margin: 20px auto; max-width: 500px; }
+          a { color: #1db954; text-decoration: none; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <div class="success">
+          <h2>✅ Playlist Created Successfully!</h2>
+          <p>Opening Spotify in a new tab...</p>
+          <p><a href="${webUrl}" target="_blank">Click here if Spotify didn't open</a></p>
+          <p style="margin-top: 20px;"><a href="/">← Back to Listify</a></p>
+        </div>
+        <script>
+          window.open('${webUrl}', '_blank');
+          setTimeout(() => { window.location.href = '/'; }, 2000);
+        </script>
+      </body>
+      </html>
+    `);
 
   } catch (e) {
     console.error("OAuth error:", e);
