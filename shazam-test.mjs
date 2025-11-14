@@ -452,32 +452,37 @@ app.get("/spotify/callback", async (req, res) => {
     }
 
     // Return HTML page that opens Spotify in new tab
-    const webUrl = playlist?.external_urls?.spotify || `https://open.spotify.com/playlist/${playlistId}`;
-    return res.send(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Playlist Created</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 40px; text-align: center; background: #1a1a2e; color: #fff; }
-          .success { background: rgba(29, 185, 84, 0.2); border: 2px solid #1db954; border-radius: 12px; padding: 24px; margin: 20px auto; max-width: 500px; }
-          a { color: #1db954; text-decoration: none; font-weight: bold; }
-        </style>
-      </head>
-      <body>
-        <div class="success">
-          <h2>✅ Playlist Created Successfully!</h2>
-          <p>Opening Spotify in a new tab...</p>
-          <p><a href="${webUrl}" target="_blank">Click here if Spotify didn't open</a></p>
-          <p style="margin-top: 20px;"><a href="/">← Back to Listify</a></p>
-        </div>
-        <script>
-          window.open('${webUrl}', '_blank');
-          setTimeout(() => { window.location.href = '/'; }, 2000);
-        </script>
-      </body>
-      </html>
-    `);
+    // Return HTML page that opens Spotify in new tab
+const appUrl = `spotify:playlist:${playlistId}`;
+
+return res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Playlist Created</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 40px; text-align: center; background: #1a1a2e; color: #fff; }
+    .success { background: rgba(29,185,84,0.2); border: 2px solid #1db954; border-radius: 12px; padding: 24px; margin: 20px auto; max-width: 500px; }
+    a { color: #1db954; text-decoration: none; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="success">
+    <h2>✅ Playlist Created Successfully!</h2>
+    <p>Opening the Spotify app...</p>
+    <p><a href="${appUrl}">Open in Spotify App</a></p>
+    <p style="margin-top: 20px;"><a href="/">← Back to Shazam Test</a></p>
+  </div>
+
+  <script>
+    // Automatically attempt to open the Spotify app
+    window.location.href = '${appUrl}';
+  </script>
+</body>
+</html>
+`);
+
+
 
   } catch (e) {
     console.error("OAuth error:", e);
