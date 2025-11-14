@@ -461,22 +461,40 @@ return res.send(`
 <head>
   <title>Playlist Created</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 40px; text-align: center; background: #1a1a2e; color: #fff; }
-    .success { background: rgba(29,185,84,0.2); border: 2px solid #1db954; border-radius: 12px; padding: 24px; margin: 20px auto; max-width: 500px; }
-    a { color: #1db954; text-decoration: none; font-weight: bold; }
+    body { 
+      font-family: Arial, sans-serif; 
+      padding: 40px; 
+      text-align: center; 
+      background: #1a1a2e; 
+      color: #fff; 
+    }
+    .success { 
+      background: rgba(29,185,84,0.2); 
+      border: 2px solid #1db954; 
+      border-radius: 12px; 
+      padding: 24px; 
+      margin: 20px auto; 
+      max-width: 500px; 
+    }
   </style>
 </head>
 <body>
   <div class="success">
     <h2>✅ Playlist Created Successfully!</h2>
-    <p>Opening the Spotify app...</p>
-    <p><a href="${appUrl}">Open in Spotify App</a></p>
-    <p style="margin-top: 20px;"><a href="/">← Back to Shazam Test</a></p>
+    <p>Opening Spotify…</p>
   </div>
 
   <script>
-    // Automatically attempt to open the Spotify app
-    window.location.href = '${appUrl}';
+    // Automatically launch Spotify app without user interaction
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = '${appUrl}';
+    document.body.appendChild(iframe);
+
+    // If the browser blocks the iframe attempt, fallback to direct navigation
+    setTimeout(() => {
+      window.location.href = '${appUrl}';
+    }, 300);
   </script>
 </body>
 </html>
