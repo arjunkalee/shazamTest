@@ -452,32 +452,55 @@ app.get("/spotify/callback", async (req, res) => {
     }
 
     // Return HTML page that opens Spotify in new tab
-    const webUrl = playlist?.external_urls?.spotify || `https://open.spotify.com/playlist/${playlistId}`;
-    return res.send(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Playlist Created</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 40px; text-align: center; background: #1a1a2e; color: #fff; }
-          .success { background: rgba(29, 185, 84, 0.2); border: 2px solid #1db954; border-radius: 12px; padding: 24px; margin: 20px auto; max-width: 500px; }
-          a { color: #1db954; text-decoration: none; font-weight: bold; }
-        </style>
-      </head>
-      <body>
-        <div class="success">
-          <h2>✅ Playlist Created Successfully!</h2>
-          <p>Opening Spotify in a new tab...</p>
-          <p><a href="${webUrl}" target="_blank">Click here if Spotify didn't open</a></p>
-          <p style="margin-top: 20px;"><a href="/">← Back to Listify</a></p>
-        </div>
-        <script>
-          window.open('${webUrl}', '_blank');
-          setTimeout(() => { window.location.href = '/'; }, 2000);
-        </script>
-      </body>
-      </html>
-    `);
+    // Return HTML page that opens Spotify in new tab
+const appUrl = `spotify:playlist:${playlistId}`;
+
+return res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Playlist Created</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      padding: 40px; 
+      text-align: center; 
+      background: #1a1a2e; 
+      color: #fff; 
+    }
+    .success { 
+      background: rgba(29,185,84,0.2); 
+      border: 2px solid #1db954; 
+      border-radius: 12px; 
+      padding: 24px; 
+      margin: 20px auto; 
+      max-width: 500px; 
+    }
+  </style>
+</head>
+<body>
+  <div class="success">
+    <h2>✅ Playlist Created Successfully!</h2>
+    <p>Opening Spotify…</p>
+  </div>
+
+  <script>
+    // Automatically launch Spotify app without user interaction
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = '${appUrl}';
+    document.body.appendChild(iframe);
+
+    // If the browser blocks the iframe attempt, fallback to direct navigation
+    setTimeout(() => {
+      window.location.href = '${appUrl}';
+    }, 300);
+  </script>
+</body>
+</html>
+`);
+
+
 
   } catch (e) {
     console.error("OAuth error:", e);
