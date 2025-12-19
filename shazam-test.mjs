@@ -11,7 +11,6 @@
 import express from "express";
 import multer from "multer";
 import { randomBytes } from "crypto";
-import Database from "better-sqlite3";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -32,17 +31,29 @@ const TARGET_USER_ID = "forzadaboss2004";
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
 
 // ---------- Database Setup ----------
-const db = new Database("users.db");
-// Create users table if it doesn't exist
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
-`);
+let db = null;
+// Skip database on Vercel (better-sqlite3 doesn't work on serverless)
+if (process.env.VERCEL !== "1") {
+  try {
+    const Database = (await import("better-sqlite3")).default;
+    db = new Database("users.db");
+    // Create users table if it doesn't exist
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+  } catch (e) {
+    console.warn("Database initialization failed:", e.message);
+    db = null;
+  }
+} else {
+  console.log("Skipping database initialization on Vercel (serverless environment)");
+}
 
 // ---------- App ----------
 const app = express();
@@ -450,8 +461,13 @@ registerForm.onsubmit = async (e) => {
 // Auth page
 app.get("/login", (req, res) => res.type("html").send(AUTH_HTML));
 
-// Home (protected - redirects to login if not authenticated)
+// Home (protected - redirects to login if not authenticated, but allow access if DB not available)
 app.get("/", async (req, res) => {
+  // If database is not available (serverless), allow access without auth
+  if (!db) {
+    return res.type("html").send(INDEX_HTML);
+  }
+  
   const token = getCookie(req, "auth_token");
   if (!token) {
     return res.redirect("/login");
@@ -468,6 +484,9 @@ app.get("/", async (req, res) => {
 
 // Register
 app.post("/api/register", async (req, res) => {
+  if (!db) {
+    return res.status(503).json({ error: "Authentication not available on this server. Please use a cloud database for production." });
+  }
   try {
     const { username, email, password } = req.body;
     if (!username || !email || !password) {
@@ -502,6 +521,9 @@ app.post("/api/register", async (req, res) => {
 
 // Login
 app.post("/api/login", async (req, res) => {
+  if (!db) {
+    return res.status(503).json({ error: "Authentication not available on this server. Please use a cloud database for production." });
+  }
   try {
     const { username, password } = req.body;
     if (!username || !password) {
