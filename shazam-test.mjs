@@ -33,24 +33,33 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-producti
 // ---------- Database Setup ----------
 let db = null;
 // Skip database on Vercel (better-sqlite3 doesn't work on serverless)
+// Initialize database asynchronously to avoid top-level await issues
 if (process.env.VERCEL !== "1") {
-  try {
-    const Database = (await import("better-sqlite3")).default;
-    db = new Database("users.db");
-    // Create users table if it doesn't exist
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
-        email TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-  } catch (e) {
-    console.warn("Database initialization failed:", e.message);
-    db = null;
-  }
+  import("better-sqlite3")
+    .then((module) => {
+      try {
+        const Database = module.default;
+        db = new Database("users.db");
+        // Create users table if it doesn't exist
+        db.exec(`
+          CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+        console.log("Database initialized successfully");
+      } catch (e) {
+        console.warn("Database initialization failed:", e.message);
+        db = null;
+      }
+    })
+    .catch((e) => {
+      console.warn("Failed to import better-sqlite3:", e.message);
+      db = null;
+    });
 } else {
   console.log("Skipping database initialization on Vercel (serverless environment)");
 }
@@ -570,8 +579,13 @@ app.post("/api/recognize", upload.single("file"), async (req, res) => {
     if (!RAPIDAPI_KEY) return res.status(500).json({ error: "Missing RAPIDAPI_KEY" });
     if (!req.file?.buffer) return res.status(400).json({ error: "No audio file" });
 
+    // Create FormData for API request
     const form = new FormData();
-    form.append("file", new Blob([req.file.buffer]), req.file.originalname || "clip.webm");
+    // Use Buffer with proper options for serverless compatibility
+    form.append("file", req.file.buffer, {
+      filename: req.file.originalname || "clip.webm",
+      contentType: req.file.mimetype || "audio/webm"
+    });
 
     const apiRes = await fetch(`https://${API_HOST}/recognize/file`, {
       method: "POST",
