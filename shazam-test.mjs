@@ -50,7 +50,7 @@ const INDEX_HTML = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><
 .container{max-width:800px;margin:0 auto;padding:20px 20px 0 20px}header{text-align:center;margin-bottom:40px;color:#fff}
 header h1{font-size:3rem;margin-bottom:10px}
 main{background:rgba(26,26,46,.92);border-radius:24px 24px 0 0;padding:40px;box-shadow:0 25px 50px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.1);min-height:calc(100vh - 160px);display:flex;flex-direction:column}
-.main-button{width:200px;height:200px;border-radius:50%;border:none;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;margin:20px auto;font-size:5rem}
+.main-button{width:200px;height:200px;border-radius:0;border:none;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;margin:20px auto;font-size:5rem}
 body.light-mode .main-button{background:linear-gradient(135deg,#4a5568 0%,#2d3748 100%)}
 .status{display:inline-block;padding:10px 16px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);margin:10px 0}
 .song-item{display:flex;gap:16px;align-items:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:14px;margin-top:14px}
