@@ -11,8 +11,9 @@
 import express from "express";
 import multer from "multer";
 import { randomBytes } from "crypto";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+// Auth imports removed for Vercel compatibility
+// import bcrypt from "bcryptjs";
+// import jwt from "jsonwebtoken";
 
 // ----------- Config ----------
 const RAPIDAPI_KEY_FALLBACK = "afbad03ef5msh0cbf5447fa19661p1fb2ffjsn226d2ca11fb1";
@@ -27,39 +28,7 @@ const SPOTIFY_REDIRECT_URI =
 // Lock to a single Spotify account (set "" to allow any user)
 const TARGET_USER_ID = "forzadaboss2004";
 
-// JWT Secret (use env var in production)
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
-
-// ---------- Database Setup ----------
-let db = null;
-// Skip database on Vercel (better-sqlite3 doesn't work on serverless)
-// Only initialize in local development
-if (typeof process !== "undefined" && process.env.VERCEL !== "1" && process.env.NODE_ENV !== "production") {
-  // Lazy load database only when needed (not at module level)
-  const initDb = async () => {
-    try {
-      const { default: Database } = await import("better-sqlite3");
-      db = new Database("users.db");
-      db.exec(`
-        CREATE TABLE IF NOT EXISTS users (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          username TEXT UNIQUE NOT NULL,
-          email TEXT UNIQUE NOT NULL,
-          password TEXT NOT NULL,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-      console.log("Database initialized successfully");
-    } catch (e) {
-      console.warn("Database initialization failed:", e.message);
-      db = null;
-    }
-  };
-  // Initialize asynchronously (non-blocking)
-  initDb().catch(() => { db = null; });
-} else {
-  console.log("Skipping database initialization (serverless/production environment)");
-}
+// Auth and database removed for Vercel compatibility
 
 // ---------- App ----------
 const app = express();
@@ -79,20 +48,7 @@ function getCookie(req, name) {
   return m ? decodeURIComponent(m[1]) : null;
 }
 
-// ---------- Auth Middleware ----------
-function authenticateToken(req, res, next) {
-  const token = getCookie(req, "auth_token");
-  if (!token) {
-    return res.status(401).json({ error: "Authentication required" });
-  }
-  try {
-    const user = jwt.verify(token, JWT_SECRET);
-    req.user = user;
-    next();
-  } catch (e) {
-    return res.status(403).json({ error: "Invalid token" });
-  }
-}
+// Auth middleware removed
 
 // ---------- UI ----------
 const INDEX_HTML = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Listify - Music Recognition</title>
@@ -156,10 +112,6 @@ body.light-mode .logout-btn{background:#333;color:#fff}
     </label>
   </div>
   <div style="margin-top:10px;font-size:.85rem;opacity:.8">Your preference is saved.</div>
-</div>
-<div id="userInfo" class="user-info" style="display:none">
-  <span id="usernameDisplay"></span>
-  <button id="logoutBtn" class="logout-btn">Logout</button>
 </div>
 <div class="container">
 <header><h1>🎵 Listify</h1><p style="font-style: italic;">Recognize music around you</p></header>
@@ -295,280 +247,16 @@ exportBtn.onclick = async ()=>{
 // Initialize playlist display on page load
 updatePlaylistDisplay();
 
-// ---------- Authentication ----------
-const userInfo = document.getElementById('userInfo');
-const usernameDisplay = document.getElementById('usernameDisplay');
-const logoutBtn = document.getElementById('logoutBtn');
-
-// Check if user is logged in on page load
-async function checkAuth() {
-  try {
-    const res = await fetch('/api/me');
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success) {
-        usernameDisplay.textContent = data.user.username;
-        userInfo.style.display = 'block';
-        return true;
-      }
-    }
-  } catch (e) {
-    console.log('Not logged in');
-  }
-  // Redirect to login if not authenticated
-  window.location.href = '/login';
-  return false;
-}
-
-// Logout
-logoutBtn.onclick = async () => {
-  await fetch('/api/logout', { method: 'POST' });
-  window.location.href = '/login';
-};
-
-// Check auth on page load
-checkAuth();
-</script>
-</body></html>`;
-
-// ---------- Auth Page HTML ----------
-const AUTH_HTML = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Login - Listify</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}body{font-family:Inter,Segoe UI,-apple-system,BlinkMacSystemFont,sans-serif;background:#1a1a2e;min-height:100vh;display:flex;align-items:center;justify-content:center;color:#000}
-body.light-mode{background:#f5f5f5}
-.auth-container{background:rgba(26,26,46,.92);border-radius:24px;padding:40px;max-width:400px;width:90%;box-shadow:0 25px 50px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.1)}
-body.light-mode .auth-container{background:#ffffff;box-shadow:0 25px 50px rgba(0,0,0,.1),0 0 0 1px rgba(0,0,0,.08)}
-.auth-container h1{text-align:center;margin-bottom:30px;color:#a78bfa;font-size:2.5rem}
-body.light-mode .auth-container h1{color:#333}
-.auth-form input{width:100%;padding:12px;margin:10px 0;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#000;font-size:1rem}
-body.light-mode .auth-form input{background:rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.2);color:#333}
-.auth-form button{width:100%;padding:12px;margin:10px 0;border-radius:8px;border:none;background:#a78bfa;color:#e0e0e0;cursor:pointer;font-weight:700;font-size:1rem}
-body.light-mode .auth-form button{background:#333;color:#fff}
-.auth-toggle{text-align:center;margin-top:15px;color:#a78bfa;cursor:pointer;text-decoration:underline}
-body.light-mode .auth-toggle{color:#333}
-.error{color:red;margin-top:10px;text-align:center;display:none}
-.theme-toggle{position:fixed;top:16px;right:16px;width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#000;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1100}
-body.light-mode .theme-toggle{background:rgba(0,0,0,.06);color:#333}
-</style></head><body>
-<button class="theme-toggle" id="themeToggle" title="Toggle Theme">🌓</button>
-<div class="auth-container">
-  <h1>🎵 Listify</h1>
-  <div id="loginView">
-    <h2 style="margin-bottom:20px;text-align:center;color:#000">Login</h2>
-    <form id="loginForm" class="auth-form">
-      <input type="text" id="loginUsername" placeholder="Username or Email" required>
-      <input type="password" id="loginPassword" placeholder="Password" required>
-      <button type="submit">Login</button>
-    </form>
-    <div class="auth-toggle" id="showRegister">Don't have an account? Register</div>
-    <div id="loginError" class="error"></div>
-  </div>
-  <div id="registerView" style="display:none">
-    <h2 style="margin-bottom:20px;text-align:center;color:#000">Register</h2>
-    <form id="registerForm" class="auth-form">
-      <input type="text" id="registerUsername" placeholder="Username" required>
-      <input type="email" id="registerEmail" placeholder="Email" required>
-      <input type="password" id="registerPassword" placeholder="Password (min 6 chars)" required>
-      <button type="submit">Register</button>
-    </form>
-    <div class="auth-toggle" id="showLogin">Already have an account? Login</div>
-    <div id="registerError" class="error"></div>
-  </div>
-</div>
-<script>
-const loginView = document.getElementById('loginView');
-const registerView = document.getElementById('registerView');
-const loginForm = document.getElementById('loginForm');
-const registerForm = document.getElementById('registerForm');
-const showRegister = document.getElementById('showRegister');
-const showLogin = document.getElementById('showLogin');
-const loginError = document.getElementById('loginError');
-const registerError = document.getElementById('registerError');
-const themeToggle = document.getElementById('themeToggle');
-
-// Theme toggle
-const savedTheme = localStorage.getItem('theme');
-if(savedTheme === 'light'){ document.body.classList.add('light-mode'); themeToggle.textContent = '🌙'; } else { themeToggle.textContent = '☀️'; }
-themeToggle.onclick = ()=>{ 
-  const isLight = document.body.classList.toggle('light-mode'); 
-  themeToggle.textContent = isLight ? '🌙' : '☀️';
-  localStorage.setItem('theme', isLight ? 'light' : 'dark'); 
-};
-
-// Toggle between login and register
-showRegister.onclick = () => {
-  loginView.style.display = 'none';
-  registerView.style.display = 'block';
-  loginError.style.display = 'none';
-};
-showLogin.onclick = () => {
-  registerView.style.display = 'none';
-  loginView.style.display = 'block';
-  registerError.style.display = 'none';
-};
-
-// Login
-loginForm.onsubmit = async (e) => {
-  e.preventDefault();
-  loginError.style.display = 'none';
-  try {
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        username: document.getElementById('loginUsername').value,
-        password: document.getElementById('loginPassword').value
-      })
-    });
-    const data = await res.json();
-    if (data.success) {
-      window.location.href = '/';
-    } else {
-      loginError.textContent = data.error || 'Login failed';
-      loginError.style.display = 'block';
-    }
-  } catch (e) {
-    loginError.textContent = 'Login failed. Please try again.';
-    loginError.style.display = 'block';
-  }
-};
-
-// Register
-registerForm.onsubmit = async (e) => {
-  e.preventDefault();
-  registerError.style.display = 'none';
-  try {
-    const res = await fetch('/api/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        username: document.getElementById('registerUsername').value,
-        email: document.getElementById('registerEmail').value,
-        password: document.getElementById('registerPassword').value
-      })
-    });
-    const data = await res.json();
-    if (data.success) {
-      window.location.href = '/';
-    } else {
-      registerError.textContent = data.error || 'Registration failed';
-      registerError.style.display = 'block';
-    }
-  } catch (e) {
-    registerError.textContent = 'Registration failed. Please try again.';
-    registerError.style.display = 'block';
-  }
-};
+// Auth removed for Vercel compatibility
 </script>
 </body></html>`;
 
 // ---------- Routes ----------
 
-// Auth page
-app.get("/login", (req, res) => res.type("html").send(AUTH_HTML));
+// Home
+app.get("/", (req, res) => res.type("html").send(INDEX_HTML));
 
-// Home (protected - redirects to login if not authenticated, but allow access if DB not available)
-app.get("/", async (req, res) => {
-  // If database is not available (serverless), allow access without auth
-  if (!db) {
-    return res.type("html").send(INDEX_HTML);
-  }
-  
-  const token = getCookie(req, "auth_token");
-  if (!token) {
-    return res.redirect("/login");
-  }
-  try {
-    jwt.verify(token, JWT_SECRET);
-    res.type("html").send(INDEX_HTML);
-  } catch (e) {
-    res.redirect("/login");
-  }
-});
-
-// ---------- Auth Routes ----------
-
-// Register
-app.post("/api/register", async (req, res) => {
-  if (!db) {
-    return res.status(503).json({ error: "Authentication not available on this server. Please use a cloud database for production." });
-  }
-  try {
-    const { username, email, password } = req.body;
-    if (!username || !email || !password) {
-      return res.status(400).json({ error: "All fields required" });
-    }
-    if (password.length < 6) {
-      return res.status(400).json({ error: "Password must be at least 6 characters" });
-    }
-    
-    // Check if user exists
-    const existingUser = db.prepare("SELECT * FROM users WHERE username = ? OR email = ?").get(username, email);
-    if (existingUser) {
-      return res.status(400).json({ error: "Username or email already exists" });
-    }
-    
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-    
-    // Insert user
-    const result = db.prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)").run(username, email, hashedPassword);
-    
-    // Generate JWT token
-    const token = jwt.sign({ id: result.lastInsertRowid, username, email }, JWT_SECRET, { expiresIn: "7d" });
-    setCookie(res, "auth_token", token, { maxAgeSec: 604800 }); // 7 days
-    
-    res.json({ success: true, user: { id: result.lastInsertRowid, username, email }, token });
-  } catch (e) {
-    console.error("Register error:", e);
-    res.status(500).json({ error: "Registration failed" });
-  }
-});
-
-// Login
-app.post("/api/login", async (req, res) => {
-  if (!db) {
-    return res.status(503).json({ error: "Authentication not available on this server. Please use a cloud database for production." });
-  }
-  try {
-    const { username, password } = req.body;
-    if (!username || !password) {
-      return res.status(400).json({ error: "Username and password required" });
-    }
-    
-    // Find user
-    const user = db.prepare("SELECT * FROM users WHERE username = ? OR email = ?").get(username, username);
-    if (!user) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
-    
-    // Verify password
-    const valid = await bcrypt.compare(password, user.password);
-    if (!valid) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
-    
-    // Generate JWT token
-    const token = jwt.sign({ id: user.id, username: user.username, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
-    setCookie(res, "auth_token", token, { maxAgeSec: 604800 }); // 7 days
-    
-    res.json({ success: true, user: { id: user.id, username: user.username, email: user.email }, token });
-  } catch (e) {
-    console.error("Login error:", e);
-    res.status(500).json({ error: "Login failed" });
-  }
-});
-
-// Logout
-app.post("/api/logout", (req, res) => {
-  setCookie(res, "auth_token", "", { maxAgeSec: 0 });
-  res.json({ success: true });
-});
-
-// Get current user
-app.get("/api/me", authenticateToken, (req, res) => {
-  res.json({ success: true, user: req.user });
-});
+// Auth routes removed for Vercel compatibility
 
 // Shazam recognize
 app.post("/api/recognize", upload.single("file"), async (req, res) => {
